@@ -1,0 +1,294 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+    <title>DevMaster.net Game Development</title>
+</head>
+<body><div align="center">
+
+<IMG SRC="http://games.dev.java.net/images/navbar.gif" WIDTH=454 HEIGHT=43 BORDER=0 ALT="" USEMAP="#navbar_Map"></div>
+<MAP NAME="navbar_Map">
+<AREA SHAPE="rect" ALT="Wiki" COORDS="340,0,386,43" HREF="http://wiki.java.net/bin/view/Games">
+<AREA SHAPE="rect" ALT="Weblogs" COORDS="286,0,339,43" HREF="http://weblogs.java.net/weblogs/project/games">
+<AREA SHAPE="rect" ALT="Forums" COORDS="216,0,285,43" HREF="http://games.dev.java.net/forums">
+<AREA SHAPE="rect" ALT="JavaGames Home" COORDS="91,0,215,43" HREF="http://community.java.net/games">
+<AREA SHAPE="rect" ALT="www.java.net" COORDS="1,1,91,44" HREF="http://www.java.net" TARGET="_self">
+</MAP>
+<br>
+OpenAL Tutorials from DevMaster.net. Reprinted with Permission.<br>
+<br>
+
+<table border="0" cellspacing="0" style="border-collapse: collapse" width="100%" cellpadding="0" id="AutoNumber1" height="12" bgcolor="#666699">
+    <tr>
+    <td width="47%" height="12" valign="middle"><p><b><font color="#FFFFFF">OpenAL 
+        Tutorials</font></b></p></td>
+      <td width="53%" height="12" align="right" valign="middle"><p align="right"><a href="http://devmaster.net/"><font color="#66FF99">DevMaster.net</font></a></p></td>
+    </tr>
+  </table>
+
+<p class="ArticleTitle"><font size="5">Multiple Sources<br>
+        </font><font size="4"><strong>Lesson 3</strong></font></p>
+      
+<p align="right" class="ArticleAuthor">Author: <a href="mailto:lightonthewater@hotmail.com">Jesse 
+  Maurais</a><br>
+  Adapted for Java by: <a href="mailto:athomas@dev.java.net">Athomas Goldberg</a></p>
+<p align="justify">Hello. It's been a while since my last tutorial. But better 
+  late than never I guess. Since I'm sure your all impatient to read the latest 
+  tutorial, I'll just jump right into it. What we hope to accomplish with this 
+  one is to be able to play more that one audio sample at a time. Very intense 
+  games have all kinds of stuff going on usually involving different sound clips. 
+  It won't be hard to implement any of this though. Doing multiple sounds is similar 
+  to doing just one.</p>
+  
+<pre>
+
+<font color="#0000FF">import</font> java.nio.ByteBuffer;
+<font color="#0000FF">import</font> java.util.Random;
+
+<font color="#0000FF">import</font> net.java.games.joal.AL;
+<font color="#0000FF">import</font> net.java.games.joal.ALFactory;
+<font color="#0000FF">import</font> net.java.games.joal.util.ALut;
+  
+<font color="#0000FF">public</font> <font color="#0000FF">class</font> MultipleSources {
+
+    <font color="#0000FF">static</font> AL al;
+
+    <font color="#006600">// Maximum number of buffers we will need.</font>
+    <font color="#0000FF">static</font> <font color="#0000FF">final</font> <font color="#0000FF">int</font> NUM_BUFFERS = 3;
+
+    <font color="#006600">// Maximum emissions we will need.</font>
+    <font color="#0000FF">static</font> <font color="#0000FF">final</font> <font color="#0000FF">int</font> NUM_SOURCES = 3;
+
+    <font color="#006600">// These index the buffers and sources</font>
+    <font color="#0000FF">static</font> <font color="#0000FF">final</font> <font color="#0000FF">int</font> BATTLE = 0;
+    <font color="#0000FF">static</font> <font color="#0000FF">final</font> <font color="#0000FF">int</font> GUN1   = 1;
+    <font color="#0000FF">static</font> <font color="#0000FF">final</font> <font color="#0000FF">int</font> GUN2   = 2;
+
+    <font color="#006600">// Buffers hold sound data</font>
+    <font color="#0000FF">static</font> <font color="#0000FF">int</font>[] buffers = <font color="#0000FF">new</font> <font color="#0000FF">int</font>[NUM_BUFFERS];
+
+    <font color="#006600">// Sources are points of emitting sound</font>
+    <font color="#0000FF">static</font> <font color="#0000FF">int</font>[] sources = <font color="#0000FF">new</font> <font color="#0000FF">int</font>[NUM_SOURCES];
+
+    <font color="#006600">// Position of the source sounds.</font>
+    <font color="#0000FF">static</font> <font color="#0000FF">float</font>[][] sourcePos = <font color="#0000FF">new</font> <font color="#0000FF">float</font>[NUM_SOURCES][3];
+
+    <font color="#006600">// Velocity of the source sounds</font>
+    <font color="#0000FF">static</font> <font color="#0000FF">float</font>[][] sourceVel = <font color="#0000FF">new</font> <font color="#0000FF">float</font>[NUM_SOURCES][3];
+
+    <font color="#006600">// Position of the listener</font>.
+    <font color="#0000FF">static</font> <font color="#0000FF">float</font>[] listenerPos = { 0.0f, 0.0f, 0.0f };
+
+    <font color="#006600">// Velocity of the listener.</font>
+    <font color="#0000FF">static</font> <font color="#0000FF">float</font>[] listenerVel = { 0.0f, 0.0f, 0.0f };
+
+    <font color="#006600">// Orientation of the listener. (first 3 elements are "at", second 3 are "up")</font>
+    <font color="#0000FF">static</font> <font color="#0000FF">float</font>[] listenerOri = { 0.0f, 0.0f, -1.0f, 0.0f, 1.0f, 0.0f };
+</pre>
+<p align="justify">I guess this little piece of source code will be familiar to 
+  a lot of you who've read the first two tutorials. The only difference is that 
+  we now have 3 different sound effects that we are going to load into the OpenAL 
+  sound system.</p>
+  
+<pre>
+
+    <font color="#0000FF">static</font> <font color="#0000FF">int</font> loadALData() {
+
+        <font color="#006600">//variables to load into</font>
+
+        <font color="#0000FF">int</font>[] format = <font color="#0000FF">new</font> <font color="#0000FF">int</font>[1];
+        <font color="#0000FF">int</font>[] size = <font color="#0000FF">new</font> <font color="#0000FF">int</font>[1];
+        ByteBuffer[] data = <font color="#0000FF">new</font> ByteBuffer[1];
+        <font color="#0000FF">int</font>[] freq = <font color="#0000FF">new</font> <font color="#0000FF">int</font>[1];
+        <font color="#0000FF">int</font>[] loop = <font color="#0000FF">new</font> <font color="#0000FF">int</font>[1];
+        <font color="#006600">
+        // load wav data into buffers</font>
+
+        al.alGenBuffers(NUM_BUFFERS, buffers);
+        <font color="#0000FF">if </font>(al.alGetError() != AL.AL_NO_ERROR) {
+            <font color="#0000FF">return</font> AL.AL_FALSE;
+        }
+
+        ALut.alutLoadWAVFile(
+            "wavdata/Battle.wav",
+            format,
+            data,
+            size,
+            freq,
+            loop);
+        al.alBufferData(
+            buffers[BATTLE],
+            format[0],
+            data[0],
+            size[0],
+            freq[0]);
+        ALut.alutUnloadWAV(format[0], data[0], size[0], freq[0]);
+
+        ALut.alutLoadWAVFile(
+            "wavdata/Gun1.wav",
+            format,
+            data,
+            size,
+            freq,
+            loop);
+        al.alBufferData(
+            buffers[GUN1],
+            format[0],
+            data[0],
+            size[0],
+            freq[0]);
+        ALut.alutUnloadWAV(format[0], data[0], size[0], freq[0]);
+
+        ALut.alutLoadWAVFile(
+            "wavdata/Gun2.wav",
+            format,
+            data,
+            size,
+            freq,
+            loop);
+        al.alBufferData(
+            buffers[GUN2],
+            format[0],
+            data[0],
+            size[0],
+            freq[0]);
+        ALut.alutUnloadWAV(format[0], data[0], size[0], freq[0]);
+
+<font color="#006600">        // bind buffers into audio sources</font>
+        al.alGenSources(NUM_SOURCES, sources);
+
+        al.alSourcei(sources[BATTLE], AL.AL_BUFFER, buffers[BATTLE]);
+        al.alSourcef(sources[BATTLE], AL.AL_PITCH, 1.0f);
+        al.alSourcef(sources[BATTLE], AL.AL_GAIN, 1.0f);
+        al.alSourcefv(sources[BATTLE], AL.AL_POSITION, sourcePos[BATTLE]);
+        al.alSourcefv(sources[BATTLE], AL.AL_POSITION, sourceVel[BATTLE]);
+        al.alSourcei(sources[BATTLE], AL.AL_LOOPING, AL.AL_TRUE);
+
+        al.alSourcei(sources[GUN1], AL.AL_BUFFER, buffers[GUN1]);
+        al.alSourcef(sources[GUN1], AL.AL_PITCH, 1.0f);
+        al.alSourcef(sources[GUN1], AL.AL_GAIN, 1.0f);
+        al.alSourcefv(sources[GUN1], AL.AL_POSITION, sourcePos[GUN1]);
+        al.alSourcefv(sources[GUN1], AL.AL_POSITION, sourceVel[GUN1]);
+        al.alSourcei(sources[GUN1], AL.AL_LOOPING, AL.AL_FALSE);
+
+        al.alSourcei(sources[GUN2], AL.AL_BUFFER, buffers[GUN2]);
+        al.alSourcef(sources[GUN2], AL.AL_PITCH, 1.0f);
+        al.alSourcef(sources[GUN2], AL.AL_GAIN, 1.0f);
+        al.alSourcefv(sources[GUN2], AL.AL_POSITION, sourcePos[GUN2]);
+        al.alSourcefv(sources[GUN2], AL.AL_POSITION, sourceVel[GUN2]);
+        al.alSourcei(sources[GUN2], AL.AL_LOOPING, AL.AL_FALSE);
+
+<font color="#006600">        // do another error check and return</font>
+        if (al.alGetError() != AL.AL_NO_ERROR) {
+            <font color="#0000FF">return</font> AL.AL_FALSE;
+        }
+
+        <font color="#0000FF">return</font> AL.AL_TRUE;
+    }
+
+</pre>
+<p align="justify">This code looks quite a bit different at first, but it isn't 
+  really. Basically we load the file data into our 3 buffers, then lock the 3 
+  buffers to our 3 sources relatively. The only other difference is that the &quot;Battle.wav&quot; 
+  (Source index 0) is looping while the rest are not.</p>
+<pre>
+
+    <font color="#0000FF">static</font> <font color="#0000FF">void</font> setListenerValues() {
+        al.alListenerfv(AL.AL_POSITION, listenerPos);
+        al.alListenerfv(AL.AL_VELOCITY, listenerVel);
+        al.alListenerfv(AL.AL_ORIENTATION, listenerOri);
+    }
+
+    <font color="#0000FF">static</font> <font color="#0000FF">void</font> killAllData() {
+        al.alDeleteBuffers(NUM_BUFFERS, buffers);
+        al.alDeleteSources(NUM_SOURCES, sources);
+        ALut.alutExit();
+    }
+</pre>
+<p>I don't think we changed anything in this code.</p>
+
+<pre>    <font color="#0000FF">public</font> <font color="#0000FF">static</font> <font color="#0000FF">void</font> main(String[] args) {
+        al = ALFactory.getAL();
+
+		<font color="#006600">// Initialize OpenAL and clear the error bit</font>
+
+        ALut.alutInit();
+        al.alGetError();
+        
+		<font color="#006600">// Load the wav data.</font>
+
+        <font color="#0000FF">if</font>(loadALData() == AL.AL_FALSE) {
+            System.exit(1);    
+        }
+        setListenerValues();
+
+	<font color="#006600">	// begin the battle sample to play</font>
+
+        al.alSourcePlay(sources[BATTLE]);
+        <font color="#0000FF">long</font> startTime = System.currentTimeMillis();
+        <font color="#0000FF">long</font> elapsed = 0;
+        <font color="#0000FF">long</font> totalElapsed = 0;
+        Random rand = new Random();
+        <font color="#0000FF">int</font>[] state = <font color="#0000FF">new</font> <font color="#0000FF">int</font>[1];
+        <font color="#0000FF">while</font> (totalElapsed < 10000) {
+            elapsed = System.currentTimeMillis() - startTime;
+            <font color="#0000FF">if</font> (elapsed > 50) {
+                totalElapsed += elapsed;
+                startTime = System.currentTimeMillis();
+				
+                <font color="#006600">// pick one of the sources at random and check to see if it is playing.
+                // Skip the first source because it is looping anyway (will always be playing).</font>
+                
+				 <font color="#0000FF">int</font> pick = Math.abs((rand.nextInt()) % 2) + 1;
+                al.alGetSourcei(sources[pick], AL.AL_SOURCE_STATE, state);
+				
+                <font color="#0000FF">if</font> (state[0] != AL.AL_PLAYING) {
+				
+				<font color="#006600">    // pick a random position around the listener to play the source.</font>
+				
+                    <font color="#0000FF">double</font> theta = (rand.nextInt() % 360) * 3.14 / 180.0;
+                    sourcePos[pick][0] = - ((<font color="#0000FF">float</font>) Math.cos(theta));
+                    sourcePos[pick][1] = - ((<font color="#0000FF">float</font>) (rand.nextInt() % 2));
+                    sourcePos[pick][2] = - ((<font color="#0000FF">float</font>) Math.sin(theta));
+
+                    al.alSourcefv(
+                        sources[pick],
+                        AL.AL_POSITION,
+                        sourcePos[pick]);
+
+                    al.alSourcePlay(sources[pick]);
+                }
+            }
+        }
+        killAllData();
+    }
+}
+</pre>
+
+<p align="justify">Here is the interesting part of this tutorial. We go through 
+  each of the sources to make sure it's playing. If it is not then we set it to 
+  play but we select a new point in 3D space for it to play (just for kicks). 
+</p>
+<p align="justify">And bang! We are done. As most of you have probably seen, you 
+  don't have to do anything special to play more than one source at a time. OpenAL 
+  will handle all the mixing features to get the sounds right for their respective 
+  distances and velocities. And when it comes right down to it, isn't that the 
+  beauty of OpenAL? </p>
+<p align="justify">You know that was a lot easier than I thought. I don't know 
+  why I waited so long to write it. Anyway, if anyone reading wants to see something 
+  specific in future tutorials (not necessarily pertaining to OpenAL, I have quite 
+  an extensive knowledge base) drop me a line at <a href="mailto:lightonthewater@hotmail.com">lightonthewater@hotmail.com</a> 
+  I plan to do tutorials on sharing buffers and the Doppler effect in some later 
+  tutorial unless there is request for something else. Have fun with the code!</p>
+<p><a href="lesson3.zip">Download the Java 
+  source and Ant build file</a></p>
+<table border="0" cellspacing="1" style="border-collapse: collapse" width="100%" id="AutoNumber2" bgcolor="#666699">
+  <tr> 
+    <td width="40%"> <p dir="ltr"><font color="#FFFFFF" size="2">© 2003 DevMaster.net. 
+        All rights reserved.</font></td>
+    <td width="60%"> <p align="right" dir="ltr"><font size="2"><a href="mailto:webmaster@devmaster.net"> 
+        <font color="#FFFFFF">Contact us</font></a><font color="#FFFFFF"> if you 
+        want to write for us or for any comments, suggestions, or feedback.</font></font></td>
+  </tr>
+</table>
+</body>
+</html>
