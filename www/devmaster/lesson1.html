@@ -1,0 +1,284 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<title>Untitled Document</title>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+<link rel="stylesheet" type="text/css" href="general.css">
+</head>
+<body>
+
+<div align="center">
+
+<IMG SRC="http://games.dev.java.net/images/navbar.gif" WIDTH=454 HEIGHT=43 BORDER=0 ALT="" USEMAP="#navbar_Map"></div>
+  <MAP NAME="navbar_Map">
+    <AREA SHAPE="rect" ALT="Wiki" COORDS="340,0,386,43" HREF="http://wiki.java.net/bin/view/Games">
+    <AREA SHAPE="rect" ALT="Weblogs" COORDS="286,0,339,43" HREF="http://weblogs.java.net/weblogs/project/games">
+    <AREA SHAPE="rect" ALT="Forums" COORDS="216,0,285,43" HREF="http://games.dev.java.net/forums">
+    <AREA SHAPE="rect" ALT="JavaGames Home" COORDS="91,0,215,43" HREF="http://community.java.net/games">
+    <AREA SHAPE="rect" ALT="www.java.net" COORDS="1,1,91,44" HREF="http://www.java.net" TARGET="_self">
+  </MAP><br>
+<br>
+OpenAL Tutorials from DevMaster.net. Reprinted with Permission.<br>
+<br>
+
+<table border="0" cellspacing="0" style="border-collapse: collapse" width="100%" cellpadding="0" id="AutoNumber1" height="12" bgcolor="#666699">
+    <tr>
+    <td width="47%" height="12" valign="middle"><p><b><font color="#FFFFFF">OpenAL 
+        Tutorials</font></b></p></td>
+      <td width="53%" height="12" align="right" valign="middle"><p align="right"><a href="http://devmaster.net/"><font color="#66FF99">DevMaster.net</font></a></p></td>
+    </tr>
+  </table>
+<p align="left" class="title"><span class="title"><font size="5">Single Static 
+Source</font></span><font size="4"><br>
+<b>Lesson 1</b></font></p>
+
+<p align="right" class="title"> <span class="author">Author: <a href="mailto:lightonthewater@hotmail.com"><font color="#888888">Jesse 
+  Maurais<br>
+  </font></a></span>Adapted for Java by: <a href="mailto:athomas@dev.java.net"><font color="#888888">Athomas 
+  Goldberg</font></a></p> </p>
+  <p>Welcome to the exciting world of OpenAL! OpenAL 
+is still in a stage of growth, and even though there is an ever larger following 
+to the API it still hasn't reached it's full potential. One of the big reasons 
+for this is that there is still not yet hardware acceleration built in for 
+specific cards. However, Creative Labs is a major contributor to the OpenAL 
+project and also happens to be one of the largest soundcard manufacturers. So 
+there is a promise of hardware accelerated features in the near future. OpenAL's 
+only other major contributor, Loki, has gone the way of the dinosaur. So the 
+future of OpenAL on Linux platforms is uncertain. You can still obtain the Linux 
+binaries on some more obscure websites.</p>
+<p>OpenAL has also not been seen in many major 
+commercial products, which may have also hurt it's growth. As far as I know the 
+only pc game to use OpenAL has been Metal Gear 2 (although recently I've 
+discovered that Unreal 2 does as well). The popular modeling program, Blender3D, 
+was also known to use OpenAL for all it's audio playback. Aside from these 
+however the only other OpenAL uses have been in the sdk examples and a few 
+obscure tutorials on the internet.</p>
+<p>But lets face it, OpenAL has a lot of 
+potential. There are many other audio libraries that claim to work with the 
+hardware on a lower level (and this may be true), but the designers of OpenAL 
+did several things in it's design which make it a superior API. First of all 
+they emulated the OpenGL API which is one of the best ever designed. The API 
+style is flexible, so different coding methods and hardware implementations will 
+take advantage of this. People who have had a lot of experience with OpenGL will 
+be able to pick up OpenAL quite fast. OpenAL also has the advantage of creating 
+3D surround sound which a lot of other API's cannot boast. On top of all of that 
+it also has the ability to extend itself into EAX and AC3 flawlessly. To my 
+knowledge no other audio library has that capability.</p>
+<p>If you still haven't found a reason here to use 
+OpenAL then here's another. It's just cool. It's a nice looking API and will 
+integrate well into your code. You will be able to do many cool sound effects 
+with it. But before we do that we have to learn the basics.</p>
+
+<p>So let's get coding!</p>
+<pre class=code><font color="#0000FF">import</font> net.java.games.joal.*;
+<font color="#0000FF">import</font> net.java.games.joal.util.*;
+<font color="#0000FF">import</font> java.io.*;
+<font color="#0000FF">import</font> java.nio.ByteBuffer;</pre>
+<pre class=code><font color="#0000FF">public</font> <font color="#0000FF">class</font> SingleStaticSource {
+
+    <font color="#0000FF"><span class=codeComment>static</span></font><span class=codeComment> AL al = ALFactory.getAL();
+
+    <font color="#006600">// Buffers hold sound data.</font></span>
+<font color="#0000FF">    static int</font>[] buffer = new <font color="#0000FF">int</font>[1];;
+
+<span class=codeComment><font color="#006600">    // Sources are points emitting sound.</font></span>
+<font color="#0000FF">    static int</font>[] source = <font color="#0000FF">new</font> <font color="#0000FF">int</font>[1];
+</pre>
+<p>Those familiar with OpenGL know that it uses &quot;texture objects&quot; (or &quot;texture 
+names&quot;) to handle textures used by a program. OpenAL does a similar thing with 
+audio samples. There are essentially 3 kinds of objects in OpenAL. A buffer 
+which stores all the information about how a sound should be played and the 
+sound data itself, and a source which is a point in space that emits a sound. 
+It's important to understand that a source is not itself an audio sample. A 
+source only plays back sound data from a buffer bound to it. The source is also 
+given special properties like position and velocity. </p>
+<p>The third object which I have not mentioned yet is the listener. There is 
+only one listener which represents where 'you' are, the user. The listener 
+properties along with the source properties determine how the audio sample will 
+be heard. For example their relative positions will determine the intensity of 
+the sound.</p>
+
+<pre class=code>	
+<span class=codeComment><font color="#006600">    // Position of the source sound.</font></span>
+<font color="#0000FF"><span class=codeComment><font color="#006600">    </font></span>static float</font>[] sourcePos = { 0.0f, 0.0f, 0.0f };
+<font color="#006600">
+<span class=codeComment><font color="#006600">    </font>// Velocity of the source sound.</span></font>
+<font color="#0000FF"><span class=codeComment><font color="#006600">    </font></span>static float</font>[] sourceVel = { 0.0f, 0.0f, 0.0f };
+
+<span class=codeComment><font color="#006600">    </font><font color="#006600">// Position of the listener.</font></span>
+<span class=codeComment><font color="#006600">    </font></span><font color="#0000FF">static float</font>[] listenerPos = { 0.0f, 0.0f, 0.0f };
+
+<span class=codeComment><font color="#006600">    </font><font color="#006600">// Velocity of the listener.</font></span>
+<span class=codeComment><font color="#006600">    </font></span><font color="#0000FF">static float</font>[] listenerVel = { 0.0f, 0.0f, 0.0f };
+
+<span class=codeComment><font color="#006600">    </font><font color="#006600">// Orientation of the listener. (first 3 elements are "at", second 3 are "up")</font></span>
+<span class=codeComment><font color="#006600">    </font></span><font color="#0000FF">static float</font>[] listenerOri = { 0.0f, 0.0f, -1.0f,  0.0f, 1.0f, 0.0f };
+</pre>
+
+<p>In the above code we specify the position and velocity of the source and listener 
+  objects. These arrays are vector based Cartesian coordinates. You could easily 
+  build a structure or class to do the same thing. In this example I used arrays 
+  for simplicity.</p>
+<p>Here we will create a function that loads all of our sound data from a file. 
+</p>
+<pre class=code><span class=codeComment><font color="#006600">    </font></span><font color="#0000FF">static int</font> LoadALData() {
+
+<span class=codeComment><font color="#006600">    </font><font color="#006600">    </font><font color="#006600">// variables to load into</font>
+   
+<font color="#006600">    </font><font color="#006600">    </font><font color="#0000FF">int</font>[] format = <font color="#0000FF">new int</font>[1];<br><font color="#006600">    </font><font color="#006600">    </font><font color="#0000FF">int</font>[] size = <font color="#0000FF">new int</font>[1];<br><font color="#006600">    </font><font color="#006600">    </font>ByteBuffer[] data = <font color="#0000FF">new</font> ByteBuffer[1];<br><font color="#006600">    </font><font color="#006600">    </font><font color="#0000FF">int</font>[] freq = new <font color="#0000FF">int</font>[1];
+<font color="#006600">    </font><font color="#006600">    </font><font color="#0000FF">int</font>[] loop = new <font color="#0000FF">int</font>[1];<br></span>
+<span class=codeComment><font color="#006600">    </font></span><span class=codeComment><font color="#006600">    </font></span><font color="#006600">// Load wav data into a buffer.</font>
+<span class=codeComment><font color="#006600">    </font></span><span class=codeComment><font color="#006600">    </font></span>al.alGenBuffers(1, buffer);
+<span class=codeComment><font color="#006600">    </font></span><span class=codeComment><font color="#006600">    </font></span><span class=codeKeyword>if</span> (al.alGetError() != AL.AL_NO_ERROR)
+<span class=codeComment><font color="#006600">    </font></span><span class=codeComment><font color="#006600">    </font></span><span class=codeComment><font color="#006600">    </font></span><span class=codeKeyword>return</span> AL.AL_FALSE;
+
+<span class=codeComment><font color="#006600">    </font></span><span class=codeComment><font color="#006600">    </font></span>ALut.alutLoadWAVFile(&quot;wavdata/FancyPants.wav&quot;, format, data, size, freq, loop);
+<span class=codeComment><font color="#006600">    </font></span><span class=codeComment><font color="#006600">    </font></span>al.alBufferData(buffer[0], format[0], data[0], size[0], freq[0]);
+<span class=codeComment><font color="#006600">    </font></span><span class=codeComment><font color="#006600">    </font></span>ALut.alutUnloadWAV(format[0],data[0],size[0],freq[0]); 
+</pre>
+<p>The function 'alGenBuffers' will create the buffer objects and store them in 
+the variable we passed it. It's important to do an error check to make sure 
+everything went smoothly. There may be a case in which OpenAL could not generate 
+a buffer object due to a lack of memory. In this case it would set the error 
+bit.</p>
+<p>The ALut is very helpful here. It opens up the file for us and gives us all 
+  the information we need to create the buffer. And after we have attached all 
+  this data to the buffer it will help use dispose of the data. It all works in 
+  a clean and efficient manner.</p>
+<pre>
+
+<span class=codeComment><font color="#006600">    </font></span><span class=codeComment><font color="#006600">    </font></span><font color="#006600">// Bind buffer with a source.</font>
+<span class=codeComment><font color="#006600">    </font></span><span class=codeComment><font color="#006600">    </font></span>al.alGenSources(1, source);
+
+<span class=codeComment><font color="#006600">    </font></span><span class=codeComment><font color="#006600">    </font></span><span class=codeKeyword>if</span> (al.alGetError() != AL.AL_NO_ERROR)
+        <span class=codeComment><font color="#006600">    </font></span><span class=codeKeyword>return</span> AL.AL_FALSE;
+
+    <span class=codeComment><font color="#006600">    </font></span>al.alSourcei (source[0], AL.AL_BUFFER,   buffer[0]   );
+<span class=codeComment><font color="#006600">    </font></span>    al.alSourcef (source[0], AL.AL_PITCH,    1.0f     );
+<span class=codeComment><font color="#006600">    </font></span>    al.alSourcef (source[0], AL.AL_GAIN,     1.0f     );
+<span class=codeComment><font color="#006600">    </font></span>    al.alSourcefv(source[0], AL.AL_POSITION, sourcePos);
+<span class=codeComment><font color="#006600">    </font></span>    al.alSourcefv(source[0], AL.AL_VELOCITY, sourceVel);
+<span class=codeComment><font color="#006600">    </font></span>    al.alSourcei (source[0], AL.AL_LOOPING,  loop[0]     );</pre>
+<p>We generate a source object in the same manner we generated the buffer object. 
+Then we define the source properties that it will use when it's in playback. The 
+most important of these properties is the buffer it should use. This tells the 
+source which audio sample to playback. In this case we only have one so we bind 
+it. We also tell the source it's position and velocity which we defined earlier.</p>
+<p>One more thing on 'alGenBuffers' and 'alGenSources'. In some example code I 
+have seen these functions will return an integer value for the number of 
+buffers/sources created. I suppose this was meant as an error checking feature 
+that was left out in a later version. If you see this done in other code don't 
+use it yourself. If you want to do this check, use 'alGetError' instead (like we 
+have done above).</p>
+<pre class=code>
+
+<span class=codeComment><font color="#006600">    </font></span><span class=codeComment><font color="#006600">    </font></span><font color="#006600">// Do another error check and return.</font>
+    <span class=codeComment><font color="#006600">    </font></span><font color="#0000FF">if</font>(al.alGetError() == AL.AL_NO_ERROR)
+<span class=codeComment><font color="#006600">    </font></span><span class=codeComment><font color="#006600">    </font></span><span class=codeComment><font color="#006600">    </font></span><font color="#0000FF">return</font> AL.AL_TRUE;
+
+<span class=codeComment><font color="#006600">    </font></span><span class=codeComment><font color="#006600">    </font></span><span class=codeKeyword><font color="#0000FF">return</font></span> AL.AL_FALSE;
+<span class=codeComment><font color="#006600">    </font></span>}
+</pre>
+<p>To end the function we just do one more check to make sure all is well, then 
+we return success.</p>
+<pre class=code><font color="#0000FF"><span class=codeComment><font color="#006600">    </font></span>static <span class=codeKeyword>void</span> </font>setListenerValues() {
+<span class=codeComment><font color="#006600">    </font></span><span class=codeComment><font color="#006600">    </font></span>al.alListenerfv(AL.AL_POSITION,	listenerPos);
+<span class=codeComment><font color="#006600">    </font></span><span class=codeComment><font color="#006600">    </font></span>al.alListenerfv(AL.AL_VELOCITY,    listenerVel);
+<span class=codeComment><font color="#006600">    </font></span><span class=codeComment><font color="#006600">    </font></span>al.alListenerfv(AL.AL_ORIENTATION, listenerOri);
+<span class=codeComment><font color="#006600">    </font></span>}
+</pre>
+<p>We created this function to update the listener properties.</p>
+<pre class=code><font color="#0000FF"><span class=codeComment><font color="#006600">    </font></span>static <span class=codeKeyword>void</span> </font>killALData() {
+<span class=codeComment><font color="#006600">    </font></span><span class=codeComment><font color="#006600">    </font></span>al.alDeleteBuffers(1, buffer);
+<span class=codeComment><font color="#006600">    </font></span><span class=codeComment><font color="#006600">    </font></span>al.alDeleteSources(1, source);
+<span class=codeComment><font color="#006600">    </font></span><span class=codeComment><font color="#006600">    </font></span>Alut.alutExit();
+<span class=codeComment><font color="#006600">    </font></span>}
+</pre>
+<p>This will be our shutdown procedure. It is necessary to call this to release 
+all the memory and audio devices that our program may be using.</p>
+<pre class=code><font color="#0000FF"><span class=codeComment><font color="#006600">    </font></span>public static void main</font>(<span class=codeKeyword>String[] args</span>) {
+<span class=codeComment><font color="#006600">    </font></span><span class=codeComment><font color="#006600">    </font></span><span class=codeComment><font color="#006600">// Initialize OpenAL and clear the error bit.</font></span>
+<span class=codeComment>
+<font color="#006600">    </font><font color="#006600">    </font>ALut.alutInit();</span>
+<span class=codeComment><font color="#006600">    </font></span><span class=codeComment><font color="#006600">    </font></span>al.alGetError();
+
+</pre>
+<p>The function 'alutInit' will setup everything that the Alc needs to do for 
+us. Basically Alut creates a single OpenAL context through Alc and sets it to 
+current. On the Windows platform it initializes DirectSound. We also do an 
+initial call to the error function to clear it. Every time we call 'glGetError' 
+it will reset itself to 'AL_NO_ERROR'.</p>
+<pre class=code>
+
+<span class=codeComment><font color="#006600">    </font><font color="#006600">    </font><font color="#006600">// Load the wav data.</font></span>
+<span class=codeComment><font color="#006600">    </font></span><span class=codeComment><font color="#006600">    </font></span><span class=codeKeyword><font color="#0000FF">if</font></span> (loadALData() == AL.AL_FALSE)
+<span class=codeComment><font color="#006600">    </font></span><span class=codeComment><font color="#006600">    </font></span><span class=codeComment><font color="#006600">    </font></span><span class=codeKeyword><font color="#0000FF">return</font></span> -1;
+
+<span class=codeComment><font color="#006600">    </font></span><span class=codeComment><font color="#006600">    </font></span>setListenerValues();
+
+<span class=codeComment><font color="#006600">    </font></span><span class=codeComment><font color="#006600">    </font></span><span class=codeComment><font color="#006600">// Setup an exit procedure.</font></span>
+
+<span class=codeComment><font color="#006600">    </font></span><span class=codeComment><font color="#006600">    </font></span>Runtime runtime = Runtime.getRuntime();
+<span class=codeComment><font color="#006600">    </font></span><span class=codeComment><font color="#006600">    </font></span>runtime.addShutdownHook(
+<span class=codeComment><font color="#006600">    </font></span><span class=codeComment><font color="#006600">    </font></span><span class=codeComment><font color="#006600">    </font></span><font color="#0000FF">new</font> Thread(
+<span class=codeComment><font color="#006600">    </font></span><span class=codeComment><font color="#006600">    </font></span><span class=codeComment><font color="#006600">    </font></span><span class=codeComment><font color="#006600">    </font></span><font color="#0000FF">new</font> Runnable() {
+<span class=codeComment><font color="#006600">    </font></span><span class=codeComment><font color="#006600">    </font></span><span class=codeComment><font color="#006600">    </font></span><span class=codeComment><font color="#006600">    </font></span><span class=codeComment><font color="#006600">    </font></span><font color="#0000FF">public void</font> run() {
+<span class=codeComment><font color="#006600">    </font></span><span class=codeComment><font color="#006600">    </font></span><span class=codeComment><font color="#006600">    </font></span><span class=codeComment><font color="#006600">    </font></span><span class=codeComment><font color="#006600">    </font></span><span class=codeComment><font color="#006600">    </font></span>killAllData();
+<span class=codeComment><font color="#006600">    </font></span><span class=codeComment><font color="#006600">    </font></span><span class=codeComment><font color="#006600">    </font></span><span class=codeComment><font color="#006600">    </font></span><span class=codeComment><font color="#006600">    </font></span>}
+<span class=codeComment><font color="#006600">    </font></span><span class=codeComment><font color="#006600">    </font></span><span class=codeComment><font color="#006600">    </font></span><span class=codeComment><font color="#006600">    </font></span>}
+<span class=codeComment><font color="#006600">    </font></span><span class=codeComment><font color="#006600">    </font></span><span class=codeComment><font color="#006600">    </font></span>)
+<span class=codeComment><font color="#006600">    </font></span><span class=codeComment><font color="#006600">    </font></span>);
+</pre>
+<p>We will check to see if the wav files loaded correctly. If not we must exit 
+the program. Then we update the listener values, and finally we set our exit 
+procedure.</p>
+<pre class=code><font color="#0000FF">        char</font>[] c = new <font color="#0000FF">char</font>[1];
+<font color="#0000FF">    </font><font color="#0000FF">    while</font>(c[0] != 'q') {	
+<font color="#0000FF">    </font><font color="#0000FF">    </font><font color="#0000FF">try</font> {
+<font color="#0000FF">    </font><font color="#0000FF">    </font><font color="#0000FF">    </font>BufferedReader buf =
+<font color="#0000FF">    </font><font color="#0000FF">    </font><font color="#0000FF">    </font><font color="#0000FF">    </font><font color="#0000FF">new</font> BufferedReader(<font color="#0000FF">new</font> InputStreamReader(System.in));
+<font color="#0000FF">    </font><font color="#0000FF">    </font><font color="#0000FF">    </font>System.out.println(&quot;Press a key and hit ENTER: &quot; +
+<font color="#0000FF">    </font><font color="#0000FF">    </font><font color="#0000FF">    </font><font color="#0000FF">    </font><font color="#0000FF">    </font><font color="#0000FF">    </font><font color="#0000FF">    </font><font color="#0000FF">   </font>&quot;'p' to play, 's' to stop, 'h' to pause and 'q' to quit&quot;);
+<font color="#0000FF">    </font><font color="#0000FF">    </font><font color="#0000FF">    </font>buf.read(c);
+<font color="#0000FF">    </font><font color="#0000FF">    </font><font color="#0000FF">    </font><font color="#0000FF">switch</font>(c[0]) {
+<font color="#0000FF">    </font><font color="#0000FF">    </font><font color="#0000FF">    </font><font color="#0000FF">    </font><font color="#0000FF">case</font> 'p':
+<font color="#0000FF">    </font><font color="#0000FF">    </font><font color="#0000FF">    </font><font color="#0000FF">    </font><font color="#0000FF">    </font><font color="#006600">// Pressing 'p' will begin playing the sample.</font>
+<font color="#0000FF">    </font><font color="#0000FF">    </font><font color="#0000FF">    </font><font color="#0000FF">    </font><font color="#0000FF">    </font>al.alSourcePlay(source[0]);
+<font color="#0000FF">    </font><font color="#0000FF">    </font><font color="#0000FF">    </font><font color="#0000FF">    </font><font color="#0000FF">    </font><font color="#0000FF">break</font>;
+<font color="#0000FF">    </font><font color="#0000FF">    </font><font color="#0000FF">    </font><font color="#0000FF">    </font><font color="#0000FF">case</font> 's':
+<font color="#0000FF">    </font><font color="#0000FF">    </font><font color="#0000FF">    </font><font color="#0000FF">    </font><font color="#0000FF">    </font><font color="#006600">// Pressing 's' will stop the sample from playing.</font>
+<font color="#0000FF">    </font><font color="#0000FF">    </font><font color="#0000FF">    </font><font color="#0000FF">    </font><font color="#0000FF">    </font>alSourceStop(source[0]);
+<font color="#0000FF">    </font><font color="#0000FF">    </font><font color="#0000FF">    </font><font color="#0000FF">    </font><font color="#0000FF">    </font><font color="#0000FF">break</font>;
+<font color="#0000FF">    </font><font color="#0000FF">    </font><font color="#0000FF">    </font><font color="#0000FF">    </font><font color="#0000FF">case</font> 'h':
+<font color="#0000FF">    </font><font color="#0000FF">    </font><font color="#0000FF">    </font><font color="#0000FF">    </font><font color="#0000FF">    </font><font color="#006600">// Pressing 'n' will pause (hold) the sample.</font>
+<font color="#0000FF">    </font><font color="#0000FF">    </font><font color="#0000FF">    </font><font color="#0000FF">    </font><font color="#0000FF">    </font>alSourcePause(source[0]);
+<font color="#0000FF">    </font><font color="#0000FF">    </font><font color="#0000FF">    </font><font color="#0000FF">    </font><font color="#0000FF">    </font><font color="#0000FF">break</font>;
+<font color="#0000FF">    </font><font color="#0000FF">    </font><font color="#0000FF">    </font><font color="#0000FF">    </font>}
+<font color="#0000FF">    </font><font color="#0000FF">    </font>} <font color="#0000FF">catch</font> (IOException e) {
+			System.exit(1);
+<font color="#0000FF">    </font><font color="#0000FF">    </font>}
+<font color="#0000FF">    </font>}
+}
+
+</pre>
+<p>This is the interesting part of the tutorial. It's a very basic loop that 
+lets us control the playback of the audio sample. Pressing 'p' will replay the 
+sample, pressing 's' will stop the sample, and pressing 'h' will pause the 
+sample. Pressing 'q' will exit the program.</p>
+<p>Well there it is. Your first delve into OpenAL. I hope it was made simple 
+enough for you. It may have been a little too simple for the 1337 h4X0r, but we 
+all got to start somewhere. Things will get more advanced as we go along.</p>
+<p> <a href="lesson1.zip">Download 
+  the Java Source and Ant Build File</a></p>
+<table border="0" cellspacing="1" style="border-collapse: collapse" width="100%" id="AutoNumber2" bgcolor="#666699">
+  <tr> 
+    <td width="40%"> <p dir="ltr"><font color="#FFFFFF" size="2">© 2003 DevMaster.net. 
+        All rights reserved.</font></td>
+    <td width="60%"> <p align="right" dir="ltr"><font size="2"><a href="mailto:webmaster@devmaster.net"> 
+        <font color="#FFFFFF">Contact us</font></a><font color="#FFFFFF"> if you 
+        want to write for us or for any comments, suggestions, or feedback.</font></font></td>
+  </tr>
+</table>
+<p>&nbsp;</p>
+</body>
+</html>
