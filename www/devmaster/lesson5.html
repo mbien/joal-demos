@@ -33,17 +33,17 @@ OpenAL Tutorials from DevMaster.net. Reprinted with Permission.<br>
   Maurais<br>
   </a>Adapted For Java By: <a href="athomas@dev.java.net">Athomas 
   Goldberg </a></p>
-<p>At this point in the OpenAL series I will show one method of having your buffers 
-  be shared among many sources. This is a very logical and natural step, and it 
-  is so easy that some of you may have already done this yourself. If you have 
-  you may just skip this tutorial in total and move on. But for those keeners 
-  who want to read all of the info I've got to give, you may find this interesting. 
-  Plus, we will be implementing the Alc layer directly so that we can use some 
-  of that knowledge gained in lesson 4. On top of that we will create a program 
-  you might even use!</p>
-<p>Well, here we go. I've decided to only go over bits of the code that are significant, 
-  since most of the code has been repeated so far in the series. Check out the 
-  full source code in the download.</p>
+<p align="justify">At this point in the OpenAL series I will show one method of 
+  having your buffers be shared among many sources. This is a very logical and 
+  natural step, and it is so easy that some of you may have already done this 
+  yourself. If you have you may just skip this tutorial in total and move on. 
+  But for those keeners who want to read all of the info I've got to give, you 
+  may find this interesting. Plus, we will be implementing the Alc layer directly 
+  so that we can use some of that knowledge gained in lesson 4. On top of that 
+  we will create a program you might even use!</p>
+<p align="justify">Well, here we go. I've decided to only go over bits of the 
+  code that are significant, since most of the code has been repeated so far in 
+  the series. Check out the full source code in the download.</p>
 <pre class=code><span class=codeComment><font color="#0000FF">static</font> ALC alc;
 <font color="#0000FF">static</font> AL al;<font color="#006600">
 
@@ -64,13 +64,13 @@ OpenAL Tutorials from DevMaster.net. Reprinted with Permission.<br>
 Vector sources = <font color="#0000FF">new </font>Vector();
 
 </pre>
-<p>First I've written out a few macros that we can use to index the buffer array. 
-  We will be using several wav files so we need quite a few buffers here. Instead 
-  of using an array for storing the sources we will use a Vector. We chose to 
-  do this because it allows us to have a dynamic number of sources. We can just 
-  keep adding sources to the scene until OpenAL runs out of them. This is also 
-  the first tutorial where we will deal with sources as being a resource that 
-  will run out. And yes, they will run out; they are finite.</p>
+<p align="justify">First I've written out a few macros that we can use to index 
+  the buffer array. We will be using several wav files so we need quite a few 
+  buffers here. Instead of using an array for storing the sources we will use 
+  a Vector. We chose to do this because it allows us to have a dynamic number 
+  of sources. We can just keep adding sources to the scene until OpenAL runs out 
+  of them. This is also the first tutorial where we will deal with sources as 
+  being a resource that will run out. And yes, they will run out; they are finite.</p>
 <pre class=code><font color="#0000FF">static int </font>initOpenAL() {
  
     ALC.Device device;
@@ -99,8 +99,8 @@ Vector sources = <font color="#0000FF">new </font>Vector();
     <span class=codeKeyword><font color="#0000FF">return</font></span> AL.AL_TRUE;
 }
 </pre>
-<p>This is some sample code from what we learned in the last tutorial. We get 
-  a handle to the device &quot;DirectSound3D&quot;, and then obtain a rendering 
+<p align="justify">This is some sample code from what we learned in the last tutorial. 
+  We get a handle to the device &quot;DirectSound3D&quot;, and then obtain a rendering 
   context for our application. This context is set to current and the function 
   will check if everything went smoothly before we return success.</p>
 <pre class=code><span class=codeKeyword><font color="#0000FF">static void</font></span> exitOpenAL() {
@@ -121,16 +121,16 @@ Vector sources = <font color="#0000FF">new </font>Vector();
     alc.alcCloseDevice(curDevice);
 }
 </pre>
-<p>This will do the opposite we did in the previous code. It retrieves the context 
-  and device that our application was using and releases them. It also sets the 
-  current context to null (the default) which will suspend the processing of any 
-  data sent to OpenAL. It is important to reset the current context to null or 
-  else you will have an invalid context trying to process data. The results of 
-  doing this can be unpredictable.</p>
-<p>If you are using a multi-context application you may need to have a more advanced 
-  way of dealing with initialization and shutdown. I would recommend making all 
-  devices and contexts global and closing them individually, rather than retrieving 
-  the current context.</p>
+<p align="justify">This will do the opposite we did in the previous code. It retrieves 
+  the context and device that our application was using and releases them. It 
+  also sets the current context to null (the default) which will suspend the processing 
+  of any data sent to OpenAL. It is important to reset the current context to 
+  null or else you will have an invalid context trying to process data. The results 
+  of doing this can be unpredictable.</p>
+<p align="justify">If you are using a multi-context application you may need to 
+  have a more advanced way of dealing with initialization and shutdown. I would 
+  recommend making all devices and contexts global and closing them individually, 
+  rather than retrieving the current context.</p>
 <pre class=code><font color="#0000FF">static int </font>loadALData() {
     <font color="#006600"><span class=codeComment>// Variables to load into.</span></font>
     <font color="#0000FF">int</font>[] format = new <font color="#0000FF">int</font>[1];
@@ -176,8 +176,8 @@ Vector sources = <font color="#0000FF">new </font>Vector();
     <span class=codeKeyword><font color="#0000FF">return</font></span> AL.AL_TRUE;
 }
 </pre>
-<p>We've totally removed the source generation from this function. That's because 
-  from now on we will be initializing the sources separately.</p>
+<p align="justify">We've totally removed the source generation from this function. 
+  That's because from now on we will be initializing the sources separately.</p>
 <pre class=code><span class=codeKeyword><font color="#0000FF">static void</font></span><font color="#0000FF"> </font>addSource(int type) {
     <font color="#0000FF">int[]</font> source = <font color="#0000FF">new int</font>[1];
 
@@ -201,12 +201,12 @@ Vector sources = <font color="#0000FF">new </font>Vector();
 }
 
 </pre>
-<p>Here's the function that will generate the sources for us. This function will 
-  generate a single source for any one of the loaded buffers we generated in the 
-  previous source. Given the buffer index 'type', which is one of the macros we 
-  created right from the start of this tutorial. We do an error check to make 
-  sure we have a source to play (like I said, they are finite). If a source cannot 
-  be allocated then the program will exit.</p>
+<p align="justify">Here's the function that will generate the sources for us. 
+  This function will generate a single source for any one of the loaded buffers 
+  we generated in the previous source. Given the buffer index 'type', which is 
+  one of the macros we created right from the start of this tutorial. We do an 
+  error check to make sure we have a source to play (like I said, they are finite). 
+  If a source cannot be allocated then the program will exit.</p>
 <pre class=code><span class=codeKeyword><font color="#0000FF">static void</font></span><font color="#0000FF"> </font>killALData() {
 
     Iterator iter = sources.iterator();
@@ -218,9 +218,9 @@ Vector sources = <font color="#0000FF">new </font>Vector();
     exitOpenAL();
 }
 </pre>
-<p>This function has been modified a bit to accommodate the Vector. We have to 
-  delete each source in the list individually and then clear the list which will 
-  effectively destroy it.</p>
+<p align="justify">This function has been modified a bit to accommodate the Vector. 
+  We have to delete each source in the list individually and then clear the list 
+  which will effectively destroy it.</p>
 <pre class=code><font color="#0000FF">    char</font>[] c = <font color="#0000FF">new char</font>[1];
 
 <font color="#0000FF">    </font><font color="#0000FF">while</font>(c[0] != 'q') {	
@@ -248,19 +248,20 @@ Vector sources = <font color="#0000FF">new </font>Vector();
 			System.exit(1);
 <font color="#0000FF">    </font><font color="#0000FF">    </font>}
 <font color="#0000FF">    </font>}</pre>
-<p>Here is the programs inner loop taken straight out of our main. Basically it 
-  waits for some keyboard input and on certain key hits it will create a new source 
-  of a certain type and add it to the audio scene. Essentially what we have created 
-  here is something like one of those nature tapes that people listen to for relaxation. 
-  Ours is a little better since it allows the user to customize which sounds that 
-  they want in the background. Pretty neat eh? I've been listening to mine while 
-  I code. It's a Zen experience (I'm listening to it right now).</p>
-<p>The program can be expanded for using more wav files, and have the added feature 
-  of placing the sources around the scene in arbitrary positions. You could even 
-  allow for sources to play with a given frequency rather than have them loop. 
-  However this would require GUI routines that go beyond the scope of the tutorial. 
-  A full featured &quot;Weathering Engine&quot; would be a nifty program to make 
-  though. ;)</p>
+<p align="justify">Here is the programs inner loop taken straight out of our main. 
+  Basically it waits for some keyboard input and on certain key hits it will create 
+  a new source of a certain type and add it to the audio scene. Essentially what 
+  we have created here is something like one of those nature tapes that people 
+  listen to for relaxation. Ours is a little better since it allows the user to 
+  customize which sounds that they want in the background. Pretty neat eh? I've 
+  been listening to mine while I code. It's a Zen experience (I'm listening to 
+  it right now).</p>
+<p align="justify">The program can be expanded for using more wav files, and have 
+  the added feature of placing the sources around the scene in arbitrary positions. 
+  You could even allow for sources to play with a given frequency rather than 
+  have them loop. However this would require GUI routines that go beyond the scope 
+  of the tutorial. A full featured &quot;Weathering Engine&quot; would be a nifty 
+  program to make though. ;)</p>
 <p><a href="lesson5.zip">Download the Java Files and Ant build script</a></p>
 <table border="0" cellspacing="1" style="border-collapse: collapse" width="100%" id="AutoNumber2" bgcolor="#666699">
   <tr> 
