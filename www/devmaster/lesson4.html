@@ -1,0 +1,165 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+    <title>DevMaster.net Game Development</title>
+</head>
+<body>
+<div align="center">
+
+<IMG SRC="http://games.dev.java.net/images/navbar.gif" WIDTH=454 HEIGHT=43 BORDER=0 ALT="" USEMAP="#navbar_Map"></div>
+<MAP NAME="navbar_Map">
+<AREA SHAPE="rect" ALT="Wiki" COORDS="340,0,386,43" HREF="http://wiki.java.net/bin/view/Games">
+<AREA SHAPE="rect" ALT="Weblogs" COORDS="286,0,339,43" HREF="http://weblogs.java.net/weblogs/project/games">
+<AREA SHAPE="rect" ALT="Forums" COORDS="216,0,285,43" HREF="http://games.dev.java.net/forums">
+<AREA SHAPE="rect" ALT="JavaGames Home" COORDS="91,0,215,43" HREF="http://community.java.net/games">
+<AREA SHAPE="rect" ALT="www.java.net" COORDS="1,1,91,44" HREF="http://www.java.net" TARGET="_self">
+</MAP>
+<br>
+OpenAL Tutorials from DevMaster.net. Reprinted with Permission.<br>
+<br>
+
+<table border="0" cellspacing="0" style="border-collapse: collapse" width="100%" cellpadding="0" id="AutoNumber1" height="12" bgcolor="#666699">
+    <tr>
+    <td width="47%" height="12" valign="middle"><p><b><font color="#FFFFFF">OpenAL 
+        Tutorials</font></b></p></td>
+      <td width="53%" height="12" align="right" valign="middle"><p align="right"><a href="http://devmaster.net/"><font color="#66FF99">DevMaster.net</font></a></p></td>
+    </tr>
+  </table>
+
+<p class="ArticleTitle"><font size="5">A Closer Look at ALC</font></p>
+<p class="ArticleTitle"><font size="4"><strong>Lesson 4</strong></font></p>
+<p align="right" class="ArticleAuthor">Author: <a href="mailto:lightonthewater@hotmail.com">Jesse 
+  Maurais<br>
+  </a>Adapted for Java by: <a href="mailto:athomas@dev.java.net">Athomas 
+  Goldberg </a></p>
+<p align="justify">Up until now we have been letting Alut do all the real tricky 
+  stuff for us. For example handling the audio devices. It's really nice that 
+  the Alut library is there to provide this functionality, but any smart coder 
+  will want to know exactly what their doing. We may want to, at some point, use 
+  the Alc directly. In this tutorial we will expose the Alc layer and take a look 
+  at how to handle the devices on our own.</p>
+<pre class=code>
+ALFactory.initialize();
+ALC alc = ALFactory.getALC();
+
+
+String deviceName = "DirectSound3D";
+
+ALC.Device device = alc.alcOpenDevice(deviceName);
+</pre>
+<p align="justify">So what is an Alc device? Try to think of it in terms of a 
+  resource. OpenAL grabs a handle to the hardware being used, which must in turn 
+  be shared with the entire system. A device can be of a specific implementation 
+  as well, as in this case where we are using DirectSound as the audio device. 
+  This code grabs a handle to the hardware device and readies it to be used by 
+  the application. Eventually we should see more devices made for specific soundcards.</p>
+<p>Passing <font color="#0000FF" face="Courier New, Courier, mono">null</font> 
+  to 'alcOpenDevice' is a perfectly valid argument. It forces the Alc to use a 
+  default device.</p>
+<pre>
+ALC.Context context = alc.alcCreateContext(device, <font color="#0000FF">null</font>);
+alc.alcMakeContextCurrent(context);
+</pre>
+<p align="justify">What is an Alc context? OpenGL coders will recall that there 
+  was rendering contexts used by OpenGL that controlled the state management across 
+  different windows. An 'HGLRC' as they are called could be created several times 
+  to enable multiple rendering windows. And different rendering states for each 
+  context could be achieved. An Alc context works on the same principal. First 
+  we tell it which device to use (which we have already created), then we make 
+  that context current. In theory you could create multiple rendering contexts 
+  for different windows, and set the state variables differently and have it work 
+  just fine. Although the term &quot;rendering context&quot; usually applies to 
+  a visual rendering, this is the term preferred in the sdk docs and should be 
+  the term used.</p>
+<p align="justify">You may notice too that the second parameter in 'alcCreateContext' 
+  has been set to <font face="Courier New, Courier, mono">null</font>. The OpenAL 
+  sdk from Creative Labs defines the following variables which are optional flags 
+  to that parameter.</p>
+<ul>
+  <li>ALC_FREQUENCY</li>
+  <li>ALC_REFRESH</li>
+  <li>ALC_SYNC</li>
+</ul>
+<p align="justify">If you were to create multiple contexts you could make them 
+  interchangeable by making a call to 'alcMakeContextCurrent'. Sending NULL to 
+  'alcMakeContextCurrent' is also a perfectly valid argument. It will prevent 
+  processing of any audio data. Be aware that even if you have multiple rendering 
+  contexts, you can only have one current at a time, and when your application 
+  needs to use two contexts interchangeably you must be the one to make sure the 
+  appropriate context is current. And if you do decide to do this, then there 
+  may be times when you want to know exactly which context is current without 
+  going through a big check.</p>
+<pre class=code>ALC.Context curContext = alc.alcGetCurrentContext();
+</pre>
+<p>Once you have your context you can also obtain the device in use by that context.</p>
+<pre class=code>ALC.Device curDevice = alc.alcGetContextsDevice(curContext);
+</pre>
+<p align="justify">Above we used the context we retrieved to find out which device 
+  it was using. There is also one other cool feature that was built into Alc for 
+  handling contexts.</p>
+<pre class=code>alc.alcSuspendContext(context);
+<span class=codeComment><font color="#006600">// Processing has been suspended to context.</font></span>
+
+alc.alcProcessContext(context);
+<span class=codeComment><font color="#006600">// Processing has been re-enabled to context.</font></span>
+</pre>
+<p align="justify">What we have done above was stop, and then resume processing 
+  of audio data to the context. When processing has been suspended, no sound will 
+  be generated from data sent through that context. A further note on the rendering 
+  context: the OpenAL 1.0 spec does imply, but does not explicitly say, that sources 
+  and buffers may be used across contexts. The &quot;lifetime&quot; of a source 
+  or buffer during the application, is said to be valid as long as the source 
+  and buffer id is valid (i.e. they have not been deleted).</p>
+<pre class=code>alc.alcMakeContextCurrent(<font color="#0000FF">null</font>);
+alc.alcDestroyContext(context);
+alc.alcCloseDevice(device);
+</pre>
+<p align="justify">And that is how we clean up. The current context is defaulted 
+  to <font face="Courier New, Courier, mono">null</font>, the context we created 
+  is released, and the handle to the device is given back to the system resources. 
+  There is but a few more Alc functions we have not yet covered.</p>
+<pre class=code><font color="#0000FF">public int</font> alcGetError();
+
+<font color="#0000FF">public</font> <font color="#0000FF">boolean</font> alcIsExtensionPresent(ALC.Device device, String extName);
+
+<font color="#0000FF">public</font> <font color="#0000FF">int</font> alcGetEnumValue(ALC.Device device, String enumName);
+
+<font color="#0000FF">public </font>String alcGetString(ALC.Device device, <font color="#0000FF">int</font> token);
+
+<font color="#0000FF">public</font> <font color="#0000FF">void</font> alcGetIntegerv(ALC.Device device, <font color="#0000FF">int</font> token, <font color="#0000FF">int</font> size, <font color="#0000FF">int</font>[] dest);
+</pre>
+<p align="justify">It may be pretty obvious to you what these do, but lets humour 
+  ourselves and have a closer look. First we have 'alcGetError' which is just 
+  like 'alGetError' but will return Alc errors. The next two functions are for 
+  querying Alc extensions. This was just the creators planning ahead, as there 
+  are no Alc extensions either. The last function, 'alcGetInteger', will return 
+  the Alc version when passed 'ALC_MAJOR_VERSION' or 'ALC_MINOR_VERSION'.</p>
+<p>The function 'alcGetString' is pretty cool. It can take any of the following 
+  three parameters to 'token':</p>
+<ul>
+  <li>ALC_DEFAULT_DEVICE_SPECIFIER</li>
+  <li>ALC_DEVICE_SPECIFIER</li>
+  <li>ALC_EXTENSIONS</li>
+</ul>
+<p align="justify">The first will return the device string which your OpenAL implementation 
+  will prefer you to use. In current OpenAL this should be &quot;DirectSound3D&quot;, 
+  like we used above. The second token will return a list of specifiers, but in 
+  current OpenAL will only return &quot;DirectSound&quot; (without the &quot;3D&quot; 
+  for some reason). The last will return a list of Alc extensions, of which none 
+  exist yet.</p>
+<p align="justify">Well that's most of Alc for you. I hope it gave you a better 
+  understanding of how OpenAL interacts with the operation system. You might try 
+  writing your own initialization routines so you can cast off Alut altogether. 
+  Either way have fun with it.</p>
+<table border="0" cellspacing="1" style="border-collapse: collapse" width="100%" id="AutoNumber2" bgcolor="#666699">
+  <tr> 
+    <td width="40%"> <p dir="ltr"><font color="#FFFFFF" size="2">© 2003 DevMaster.net. 
+        All rights reserved.</font></td>
+    <td width="60%"> <p align="right" dir="ltr"><font size="2"><a href="mailto:webmaster@devmaster.net"> 
+        <font color="#FFFFFF">Contact us</font></a><font color="#FFFFFF"> if you 
+        want to write for us or for any comments, suggestions, or feedback.</font></font></td>
+  </tr>
+</table>
+<p align="justify">&nbsp;</p>
+</body>
+</html>
