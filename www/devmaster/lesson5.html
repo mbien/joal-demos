@@ -1,0 +1,275 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<title>Untitled Document</title>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+<link rel="stylesheet" type="text/css" href="general.css">
+</head>
+<body>
+
+<div align="center">
+
+<IMG SRC="http://games.dev.java.net/images/navbar.gif" WIDTH=454 HEIGHT=43 BORDER=0 ALT="" USEMAP="#navbar_Map"></div>
+  <MAP NAME="navbar_Map">
+    <AREA SHAPE="rect" ALT="Wiki" COORDS="340,0,386,43" HREF="http://wiki.java.net/bin/view/Games">
+    <AREA SHAPE="rect" ALT="Weblogs" COORDS="286,0,339,43" HREF="http://weblogs.java.net/weblogs/project/games">
+    <AREA SHAPE="rect" ALT="Forums" COORDS="216,0,285,43" HREF="http://games.dev.java.net/forums">
+    <AREA SHAPE="rect" ALT="JavaGames Home" COORDS="91,0,215,43" HREF="http://community.java.net/games">
+    <AREA SHAPE="rect" ALT="www.java.net" COORDS="1,1,91,44" HREF="http://www.java.net" TARGET="_self">
+  </MAP><br>
+<br>
+OpenAL Tutorials from DevMaster.net. Reprinted with Permission.<br>
+<br>
+<table border="0" cellspacing="0" style="border-collapse: collapse" width="100%" cellpadding="0" id="AutoNumber1" height="12" bgcolor="#666699">
+  <tr> 
+    <td width="47%" height="12" valign="middle"><p><b><font color="#FFFFFF">OpenAL 
+        Tutorials</font></b></p></td>
+    <td width="53%" height="12" align="right" valign="middle"><p align="right"><a href="http://devmaster.net/"><font color="#66FF99">DevMaster.net</font></a></p></td>
+  </tr>
+</table>
+<p class="ArticleTitle"><font size="5">Sources Sharing Buffers<br>
+  </font><strong><font size="4">Lesson 5</font></strong></p>
+<p align="right" class="ArticleAuthor">Author: <a href="mailto:lightonthewater@hotmail.com">Jesse 
+  Maurais<br>
+  </a>Adapted For Java By: <a href="athomas@dev.java.net">Athomas 
+  Goldberg </a></p>
+<p>At this point in the OpenAL series I will show one method of having your buffers 
+  be shared among many sources. This is a very logical and natural step, and it 
+  is so easy that some of you may have already done this yourself. If you have 
+  you may just skip this tutorial in total and move on. But for those keeners 
+  who want to read all of the info I've got to give, you may find this interesting. 
+  Plus, we will be implementing the Alc layer directly so that we can use some 
+  of that knowledge gained in lesson 4. On top of that we will create a program 
+  you might even use!</p>
+<p>Well, here we go. I've decided to only go over bits of the code that are significant, 
+  since most of the code has been repeated so far in the series. Check out the 
+  full source code in the download.</p>
+<pre class=code><span class=codeComment><font color="#0000FF">static</font> ALC alc;
+<font color="#0000FF">static</font> AL al;<font color="#006600">
+
+// These index the buffers.</font></span>
+<span class=codeKeyword><font color="#0000FF">public static final int</font></span> THUNDER 	 = 0;
+<span class=codeKeyword><font color="#0000FF">public static final int</font></span> WATERDROP   = 1;
+<span class=codeKeyword><font color="#0000FF">public static final int</font></span> STREAM      = 2;
+<span class=codeKeyword><font color="#0000FF">public static final int</font></span> RAIN        = 3;
+
+<span class=codeKeyword><font color="#0000FF">public static final int</font></span> CHIMES      = 4;
+<span class=codeKeyword><font color="#0000FF">public static final int</font></span> OCEAN       = 5;
+<span class=codeKeyword><font color="#0000FF">public static final int</font></span> NUM_BUFFERS = 6;
+
+<font color="#006600"><span class=codeComment>// Buffers hold sound data.</span>
+</font><font color="#0000FF">static int</font>[] buffers = <font color="#0000FF">new int</font>[NUM_BUFFERS];
+
+<span class=codeComment><font color="#006600">// A vector list of sources for multiple emissions.</font></span>
+Vector sources = <font color="#0000FF">new </font>Vector();
+
+</pre>
+<p>First I've written out a few macros that we can use to index the buffer array. 
+  We will be using several wav files so we need quite a few buffers here. Instead 
+  of using an array for storing the sources we will use a Vector. We chose to 
+  do this because it allows us to have a dynamic number of sources. We can just 
+  keep adding sources to the scene until OpenAL runs out of them. This is also 
+  the first tutorial where we will deal with sources as being a resource that 
+  will run out. And yes, they will run out; they are finite.</p>
+<pre class=code><font color="#0000FF">static int </font>initOpenAL() {
+ 
+    ALC.Device device;
+    ALC.Context context;
+    String deviceSpecifier;
+    String deviceName = "DirectSound3D";
+
+    <span class=codeComment><font color="#006600">// Get handle to device.</font></span>
+    device = alc.alcOpenDevice(deviceName);
+
+    <font color="#006600"><span class=codeComment>// Get the device specifier.</span></font>
+    deviceSpecifier = alc.alcGetString(device, ALC.ALC_DEVICE_SPECIFIER);
+
+    System.out.println("Using device &quot; + deviceSpecifier);
+
+    <span class=codeComment><font color="#006600">// Create audio context.</font></span>
+    context = alc.alcCreateContext(device, <font color="#0000FF">null</font>);
+
+    <span class=codeComment><font color="#006600">// Set active context.</font></span>
+    alc.alcMakeContextCurrent(context);
+
+    <span class=codeComment><font color="#006600">// Check for an error.</font></span>
+    <span class=codeKeyword><font color="#0000FF">if </font></span>(alc.alcGetError() != ALC.ALC_NO_ERROR)
+        <span class=codeKeyword><font color="#0000FF">return</font></span> AL.AL_FALSE;
+
+    <span class=codeKeyword><font color="#0000FF">return</font></span> AL.AL_TRUE;
+}
+</pre>
+<p>This is some sample code from what we learned in the last tutorial. We get 
+  a handle to the device &quot;DirectSound3D&quot;, and then obtain a rendering 
+  context for our application. This context is set to current and the function 
+  will check if everything went smoothly before we return success.</p>
+<pre class=code><span class=codeKeyword><font color="#0000FF">static void</font></span> exitOpenAL() {
+    ALC.Context curContext;
+    ALC.Device curDevice;
+
+    <font color="#006600"><span class=codeComment>// Get the current context.</span></font>
+    curContext = alc.alcGetCurrentContext();
+
+    <span class=codeComment><font color="#006600">// Get the device used by that context.</font></span>
+    curDevice = alc.alcGetContextsDevice(curContext);
+
+<font color="#006600">    <span class=codeComment>// Reset the current context to NULL.</span>
+</font>    alc.alcMakeContextCurrent(<font color="#0000FF">null</font>);
+
+<font color="#006600">    <span class=codeComment>// Release the context and the device.</span>
+</font>    alc.alcDestroyContext(curContext);
+    alc.alcCloseDevice(curDevice);
+}
+</pre>
+<p>This will do the opposite we did in the previous code. It retrieves the context 
+  and device that our application was using and releases them. It also sets the 
+  current context to null (the default) which will suspend the processing of any 
+  data sent to OpenAL. It is important to reset the current context to null or 
+  else you will have an invalid context trying to process data. The results of 
+  doing this can be unpredictable.</p>
+<p>If you are using a multi-context application you may need to have a more advanced 
+  way of dealing with initialization and shutdown. I would recommend making all 
+  devices and contexts global and closing them individually, rather than retrieving 
+  the current context.</p>
+<pre class=code><font color="#0000FF">static int </font>loadALData() {
+    <font color="#006600"><span class=codeComment>// Variables to load into.</span></font>
+    <font color="#0000FF">int</font>[] format = new <font color="#0000FF">int</font>[1];
+    <font color="#0000FF">int</font>[] size = new <font color="#0000FF">int</font>[1];
+    ByteBuffer[] data = new ByteBuffer[1];
+    <font color="#0000FF">int</font>[] freq = new <font color="#0000FF">int</font>[1];
+    <font color="#0000FF">int</font>[] loop = new <font color="#0000FF">int</font>[1];
+
+    <span class=codeComment><font color="#006600">// Load wav data into buffers.</font></span>
+    al.alGenBuffers(NUM_BUFFERS, buffers);
+
+    <span class=codeKeyword><font color="#0000FF">if</font></span>(al.alGetError() != AL.AL_NO_ERROR)
+        <span class=codeKeyword><font color="#0000FF">return</font></span> AL.AL_FALSE;
+
+    ALut.alutLoadWAVFile("wavdata/thunder.wav", format, data, size, freq, loop);
+    al.alBufferData(buffers[THUNDER], format[0], data[0], size[0], freq[0]);
+    ALut.alutUnloadWAV(format[0], data[0], size[0], freq[0]);
+
+    ALut.alutLoadWAVFile("wavdata/waterdrop.wav", format, data, size, freq, loop);
+    al.alBufferData(buffers[WATERDROP], format[0], data[0], size[0], freq[0]);
+    ALut.alutUnloadWAV(format[0], data[0], size[0], freq[0]);
+
+    ALut.alutLoadWAVFile("wavdata/stream.wav", format, data, size, freq, loop);
+    al.alBufferData(buffers[STREAM], format[0], data[0], size[0], freq[0]);
+    ALut.alutUnloadWAV(format[0], data[0], size[0], freq[0]);
+
+    ALut.alutLoadWAVFile("wavdata/rain.wav", format, data, size, freq, loop);
+    al.alBufferData(buffers[RAIN], format[0], data[0], size[0], freq[0]);
+    ALut.alutUnloadWAV(format[0], data[0], size[0], freq[0]);
+
+    ALut.alutLoadWAVFile("wavdata/ocean.wav", format, data, size, freq, loop);
+    al.alBufferData(buffers[OCEAN], format[0], data[0], size[0], freq[0]);
+    ALut.alutUnloadWAV(format[0], data[0], size[0], freq[0]);
+
+    ALut.alutLoadWAVFile("wavdata/chimes.wav", format, data, size, freq, loop);
+    al.alBufferData(buffers[CHIMES], format[0], data[0], size[0], freq[0]);
+    ALut.alutUnloadWAV(format[0], data[0], size[0], freq[0]);
+
+<font color="#006600">    <span class=codeComment>// Do another error check and return.</span>
+    </font><span class=codeKeyword><font color="#0000FF">if</font> </span>(al.alGetError() != AL.AL_NO_ERROR)
+        <span class=codeKeyword><font color="#0000FF">return</font></span> AL.AL_FALSE;
+
+    <span class=codeKeyword><font color="#0000FF">return</font></span> AL.AL_TRUE;
+}
+</pre>
+<p>We've totally removed the source generation from this function. That's because 
+  from now on we will be initializing the sources separately.</p>
+<pre class=code><span class=codeKeyword><font color="#0000FF">static void</font></span><font color="#0000FF"> </font>addSource(int type) {
+    <font color="#0000FF">int[]</font> source = <font color="#0000FF">new int</font>[1];
+
+    al.alGenSources(1, source);
+
+    <span class=codeKeyword><font color="#0000FF">if</font> </span>(al.alGetError() != AL.AL_NO_ERROR) {
+        System.err.println("Error generating audio source.");
+        System.exit(1);
+    }
+
+    al.alSourcei (source[0], AL.AL_BUFFER,   buffers[type]);
+    al.alSourcef (source[0], AL.AL_PITCH,    1.0          );
+    al.alSourcef (source[0], AL.AL_GAIN,     1.0          );
+    al.alSourcefv(source[0], AL.AL_POSITION, sourcePos    );
+    al.alSourcefv(source[0], AL.AL_VELOCITY, sourceVel    );
+    al.alSourcei (source[0], AL.AL_LOOPING,  AL.AL_TRUE      );
+
+    al.alSourcePlay(source);
+
+    sources.put(new Integer(source[0]));
+}
+
+</pre>
+<p>Here's the function that will generate the sources for us. This function will 
+  generate a single source for any one of the loaded buffers we generated in the 
+  previous source. Given the buffer index 'type', which is one of the macros we 
+  created right from the start of this tutorial. We do an error check to make 
+  sure we have a source to play (like I said, they are finite). If a source cannot 
+  be allocated then the program will exit.</p>
+<pre class=code><span class=codeKeyword><font color="#0000FF">static void</font></span><font color="#0000FF"> </font>killALData() {
+
+    Iterator iter = sources.iterator();
+    <span class=codeKeyword><font color="#000000">while</font></span>(iter.hasNext()) {
+        al.alDeleteSources(1, <font color="#0000FF">new int</font>[] { ((Integer)iter.next()).intValue() });
+    }
+    sources.clear();
+    al.alDeleteBuffers(NUM_BUFFERS, buffers);
+    exitOpenAL();
+}
+</pre>
+<p>This function has been modified a bit to accommodate the Vector. We have to 
+  delete each source in the list individually and then clear the list which will 
+  effectively destroy it.</p>
+<pre class=code><font color="#0000FF">    char</font>[] c = <font color="#0000FF">new char</font>[1];
+
+<font color="#0000FF">    </font><font color="#0000FF">while</font>(c[0] != 'q') {	
+<font color="#0000FF">    </font><font color="#0000FF">    </font><font color="#0000FF">try</font> {
+<font color="#0000FF">    </font><font color="#0000FF">    </font><font color="#0000FF">    </font>BufferedReader buf =
+<font color="#0000FF">    </font><font color="#0000FF">    </font><font color="#0000FF">    </font><font color="#0000FF">    </font><font color="#0000FF">new</font> BufferedReader(<font color="#0000FF">new</font> InputStreamReader(System.in));
+<font color="#0000FF">    </font><font color="#0000FF">    </font><font color="#0000FF">    </font>System.out.println(&quot;Press a key and hit ENTER: &quot; +
+<font color="#0000FF">    </font><font color="#0000FF">    </font><font color="#0000FF">    </font><font color="#0000FF">    </font><font color="#0000FF">    </font><font color="#0000FF">    </font><font color="#0000FF">    </font><font color="#0000FF">   </font>&quot;\t'w' for Water Drop\n&quot; +
+<font color="#0000FF">    </font><font color="#0000FF">    </font><font color="#0000FF">    </font><font color="#0000FF">    </font><font color="#0000FF">    </font><font color="#0000FF">    </font><font color="#0000FF">    </font><font color="#0000FF">   </font>&quot;\t't' for Thunder\n&quot; +
+<font color="#0000FF">    </font><font color="#0000FF">    </font><font color="#0000FF">    </font><font color="#0000FF">    </font><font color="#0000FF">    </font><font color="#0000FF">    </font><font color="#0000FF">    </font><font color="#0000FF">   </font>&quot;\t's' for Stream\n&quot; +
+<font color="#0000FF">    </font><font color="#0000FF">    </font><font color="#0000FF">    </font><font color="#0000FF">    </font><font color="#0000FF">    </font><font color="#0000FF">    </font><font color="#0000FF">    </font><font color="#0000FF">   </font>&quot;\t'r' for Rain\n&quot; +
+<font color="#0000FF">    </font><font color="#0000FF">    </font><font color="#0000FF">    </font><font color="#0000FF">    </font><font color="#0000FF">    </font><font color="#0000FF">    </font><font color="#0000FF">    </font><font color="#0000FF">   </font>&quot;\t'o' for Ocean\n&quot; +
+<font color="#0000FF">    </font><font color="#0000FF">    </font><font color="#0000FF">    </font><font color="#0000FF">    </font><font color="#0000FF">    </font><font color="#0000FF">    </font><font color="#0000FF">    </font><font color="#0000FF">   </font>&quot;\t'c' for Chimes\n&quot; +
+<font color="#0000FF">    </font><font color="#0000FF">    </font><font color="#0000FF">    </font><font color="#0000FF">    </font><font color="#0000FF">    </font><font color="#0000FF">    </font><font color="#0000FF">    </font><font color="#0000FF">   </font>&quot;\n'q' to Quit\n&quot;);
+<font color="#0000FF">    </font><font color="#0000FF">    </font><font color="#0000FF">    </font>buf.read(c);
+<font color="#0000FF">    </font><font color="#0000FF">    </font><font color="#0000FF">    </font><font color="#0000FF">switch</font>(c[0]) {
+<font color="#0000FF">                case</font> 'w': addSource(WATERDROP); <font color="#0000FF">break</font>;
+<font color="#0000FF"></font><font color="#0000FF">                case</font> 't': addSource(THUNDER); <font color="#0000FF">break</font>;
+<font color="#0000FF"></font><font color="#0000FF">                case</font> 's': addSource(STREAM); <font color="#0000FF">break</font>;
+<font color="#0000FF"></font><font color="#0000FF">                case</font> 'r': addSource(RAIN); <font color="#0000FF">break</font>;
+<font color="#0000FF"></font><font color="#0000FF">                case</font> 'o': addSource(OCEAN); <font color="#0000FF">break</font>;
+<font color="#0000FF"></font><font color="#0000FF">                case</font> 'c': addSource(CHIMES); <font color="#0000FF">break</font>;
+<font color="#0000FF"></font>}
+<font color="#0000FF">    </font><font color="#0000FF">    </font>} <font color="#0000FF">catch</font> (IOException e) {
+			System.exit(1);
+<font color="#0000FF">    </font><font color="#0000FF">    </font>}
+<font color="#0000FF">    </font>}</pre>
+<p>Here is the programs inner loop taken straight out of our main. Basically it 
+  waits for some keyboard input and on certain key hits it will create a new source 
+  of a certain type and add it to the audio scene. Essentially what we have created 
+  here is something like one of those nature tapes that people listen to for relaxation. 
+  Ours is a little better since it allows the user to customize which sounds that 
+  they want in the background. Pretty neat eh? I've been listening to mine while 
+  I code. It's a Zen experience (I'm listening to it right now).</p>
+<p>The program can be expanded for using more wav files, and have the added feature 
+  of placing the sources around the scene in arbitrary positions. You could even 
+  allow for sources to play with a given frequency rather than have them loop. 
+  However this would require GUI routines that go beyond the scope of the tutorial. 
+  A full featured &quot;Weathering Engine&quot; would be a nifty program to make 
+  though. ;)</p>
+<p>Download the Java Files and Ant build script</p>
+<table border="0" cellspacing="1" style="border-collapse: collapse" width="100%" id="AutoNumber2" bgcolor="#666699">
+  <tr> 
+    <td width="40%"> <p dir="ltr"><font color="#FFFFFF" size="2">© 2003 DevMaster.net. 
+        All rights reserved.</font></td>
+    <td width="60%"> <p align="right" dir="ltr"><font size="2"><a href="mailto:webmaster@devmaster.net"> 
+        <font color="#FFFFFF">Contact us</font></a><font color="#FFFFFF"> if you 
+        want to write for us or for any comments, suggestions, or feedback.</font></font></td>
+  </tr>
+</table>
+</body>
+</html>
