@@ -37,7 +37,7 @@ Fade-away</font></span><font size="4"><br>
   Maurais<br>
   </font></a></span><span class="author">Adapted for Java By: <a href="mailto:athomas@dev.java.net"><font color="#888888">Athomas 
   Goldberg </font></a> </span></p>
-<p>Hope you found the last tutorial of some use. I know I did. This will be a 
+<p align="jusify">Hope you found the last tutorial of some use. I know I did. This will be a 
 real quick and easy tutorial. It won't get too much more complicated at this 
 point.</p>
 <pre >
@@ -58,8 +58,9 @@ point.</p>
   	<font color="#0000FF">static</font> <font color="#0000FF">float</font>[] listenerOri = { 0.0f, 0.0f, -1.0f, 0.0f, 1.0f, 0.0f };
   	<font color="#0000FF">static</font> AL al;
   	<font color="#0000FF">static</font> ALC alc;</p></pre>
-<p>There is only one change in the code since the last tutorial in this fist 
-section. It is that we altered the sources velocity. It's 'z' field is now 0.1.</p>
+<p align="justify">There is only one change in the code since the last tutorial 
+  in this fist section. It is that we altered the sources velocity. It's 'z' field 
+  is now 0.1.</p>
 <pre class=code>
     <font color="#0000FF">static</font> <font color="#0000FF">int</font> loadALData() {
         <font color="#0000FF">if</font> (al.alGetError() != AL.AL_NO_ERROR) {
@@ -99,10 +100,11 @@ section. It is that we altered the sources velocity. It's 'z' field is now 0.1.<
         }
         <font color="#0000FF">return</font> AL.AL_TRUE;
     }</pre>
-<p>Two changes in this section. First we are loading the file &quot;Footsteps.wav&quot;. 
-  We are also explicitly setting the sources 'AL_LOOPING' value to 'AL_TRUE'. 
-  What this means is that when the source is prompted to play it will continue 
-  to play until stopped. It will play over again after the sound clip has ended.</p>
+<p align="justify">Two changes in this section. First we are loading the file 
+  &quot;Footsteps.wav&quot;. We are also explicitly setting the sources 'AL_LOOPING' 
+  value to 'AL_TRUE'. What this means is that when the source is prompted to play 
+  it will continue to play until stopped. It will play over again after the sound 
+  clip has ended.</p>
 <pre class=code>
     <font color="#0000FF">static <span class=codeKeyword>void</span> </font>setListenerValues() {
         al.alListenerfv(AL.AL_POSITION,	listenerPos);
@@ -149,12 +151,13 @@ section. It is that we altered the sources velocity. It's 'z' field is now 0.1.<
         ALut.alutExit();
     }
 }</pre>
-<p>The only thing that has changed in this code is the loop. Instead of playing 
-and stopping the audio sample it will slowly get quieter as the sources position 
-grows more distant. We do this by slowly incrementing the position by it's 
-velocity over time. The time is sampled by checking the system clock which gives 
-us a tick count. It shouldn't be necessary to change this, but if the audio clip 
-fades too fast you might want to change 100 to some higher number. </p>
+<p align="justify">The only thing that has changed in this code is the loop. Instead 
+  of playing and stopping the audio sample it will slowly get quieter as the sources 
+  position grows more distant. We do this by slowly incrementing the position 
+  by it's velocity over time. The time is sampled by checking the system clock 
+  which gives us a tick count. It shouldn't be necessary to change this, but if 
+  the audio clip fades too fast you might want to change 100 to some higher number. 
+</p>
 <p><a href="lesson2.zip">Download the Java 
   Source and Ant Build file.</a></p>
 <table border="0" cellspacing="1" style="border-collapse: collapse" width="100%" id="AutoNumber2" bgcolor="#666699">

@@ -36,38 +36,39 @@ Source</font></span><font size="4"><br>
   Maurais<br>
   </font></a></span>Adapted for Java by: <a href="mailto:athomas@dev.java.net"><font color="#888888">Athomas 
   Goldberg</font></a></p> </p>
-  <p>Welcome to the exciting world of OpenAL! OpenAL 
-is still in a stage of growth, and even though there is an ever larger following 
-to the API it still hasn't reached it's full potential. One of the big reasons 
-for this is that there is still not yet hardware acceleration built in for 
-specific cards. However, Creative Labs is a major contributor to the OpenAL 
-project and also happens to be one of the largest soundcard manufacturers. So 
-there is a promise of hardware accelerated features in the near future. OpenAL's 
-only other major contributor, Loki, has gone the way of the dinosaur. So the 
-future of OpenAL on Linux platforms is uncertain. You can still obtain the Linux 
-binaries on some more obscure websites.</p>
-<p>OpenAL has also not been seen in many major 
-commercial products, which may have also hurt it's growth. As far as I know the 
-only pc game to use OpenAL has been Metal Gear 2 (although recently I've 
-discovered that Unreal 2 does as well). The popular modeling program, Blender3D, 
-was also known to use OpenAL for all it's audio playback. Aside from these 
-however the only other OpenAL uses have been in the sdk examples and a few 
-obscure tutorials on the internet.</p>
-<p>But lets face it, OpenAL has a lot of 
-potential. There are many other audio libraries that claim to work with the 
-hardware on a lower level (and this may be true), but the designers of OpenAL 
-did several things in it's design which make it a superior API. First of all 
-they emulated the OpenGL API which is one of the best ever designed. The API 
-style is flexible, so different coding methods and hardware implementations will 
-take advantage of this. People who have had a lot of experience with OpenGL will 
-be able to pick up OpenAL quite fast. OpenAL also has the advantage of creating 
-3D surround sound which a lot of other API's cannot boast. On top of all of that 
-it also has the ability to extend itself into EAX and AC3 flawlessly. To my 
-knowledge no other audio library has that capability.</p>
-<p>If you still haven't found a reason here to use 
-OpenAL then here's another. It's just cool. It's a nice looking API and will 
-integrate well into your code. You will be able to do many cool sound effects 
-with it. But before we do that we have to learn the basics.</p>
+  
+<p align="justify">Welcome to the exciting world of OpenAL! OpenAL is still in 
+  a stage of growth, and even though there is an ever larger following to the 
+  API it still hasn't reached it's full potential. One of the big reasons for 
+  this is that there is still not yet hardware acceleration built in for specific 
+  cards. However, Creative Labs is a major contributor to the OpenAL project and 
+  also happens to be one of the largest soundcard manufacturers. So there is a 
+  promise of hardware accelerated features in the near future. OpenAL's only other 
+  major contributor, Loki, has gone the way of the dinosaur. So the future of 
+  OpenAL on Linux platforms is uncertain. You can still obtain the Linux binaries 
+  on some more obscure websites.</p>
+<p align="justify">OpenAL has also not been seen in many major commercial products, 
+  which may have also hurt it's growth. As far as I know the only pc game to use 
+  OpenAL has been Metal Gear 2 (although recently I've discovered that Unreal 
+  2 does as well). The popular modeling program, Blender3D, was also known to 
+  use OpenAL for all it's audio playback. Aside from these however the only other 
+  OpenAL uses have been in the sdk examples and a few obscure tutorials on the 
+  internet.</p>
+<p align="justify">But lets face it, OpenAL has a lot of potential. There are 
+  many other audio libraries that claim to work with the hardware on a lower level 
+  (and this may be true), but the designers of OpenAL did several things in it's 
+  design which make it a superior API. First of all they emulated the OpenGL API 
+  which is one of the best ever designed. The API style is flexible, so different 
+  coding methods and hardware implementations will take advantage of this. People 
+  who have had a lot of experience with OpenGL will be able to pick up OpenAL 
+  quite fast. OpenAL also has the advantage of creating 3D surround sound which 
+  a lot of other API's cannot boast. On top of all of that it also has the ability 
+  to extend itself into EAX and AC3 flawlessly. To my knowledge no other audio 
+  library has that capability.</p>
+<p align="justify">If you still haven't found a reason here to use OpenAL then 
+  here's another. It's just cool. It's a nice looking API and will integrate well 
+  into your code. You will be able to do many cool sound effects with it. But 
+  before we do that we have to learn the basics.</p>
 
 <p>So let's get coding!</p>
 <pre class=code><font color="#0000FF">import</font> net.java.games.joal.*;
@@ -84,19 +85,20 @@ with it. But before we do that we have to learn the basics.</p>
 <span class=codeComment><font color="#006600">    // Sources are points emitting sound.</font></span>
 <font color="#0000FF">    static int</font>[] source = <font color="#0000FF">new</font> <font color="#0000FF">int</font>[1];
 </pre>
-<p>Those familiar with OpenGL know that it uses &quot;texture objects&quot; (or &quot;texture 
-names&quot;) to handle textures used by a program. OpenAL does a similar thing with 
-audio samples. There are essentially 3 kinds of objects in OpenAL. A buffer 
-which stores all the information about how a sound should be played and the 
-sound data itself, and a source which is a point in space that emits a sound. 
-It's important to understand that a source is not itself an audio sample. A 
-source only plays back sound data from a buffer bound to it. The source is also 
-given special properties like position and velocity. </p>
-<p>The third object which I have not mentioned yet is the listener. There is 
-only one listener which represents where 'you' are, the user. The listener 
-properties along with the source properties determine how the audio sample will 
-be heard. For example their relative positions will determine the intensity of 
-the sound.</p>
+<p align="justify">Those familiar with OpenGL know that it uses &quot;texture 
+  objects&quot; (or &quot;texture names&quot;) to handle textures used by a program. 
+  OpenAL does a similar thing with audio samples. There are essentially 3 kinds 
+  of objects in OpenAL. A buffer which stores all the information about how a 
+  sound should be played and the sound data itself, and a source which is a point 
+  in space that emits a sound. It's important to understand that a source is not 
+  itself an audio sample. A source only plays back sound data from a buffer bound 
+  to it. The source is also given special properties like position and velocity. 
+</p>
+<p align="justify">The third object which I have not mentioned yet is the listener. 
+  There is only one listener which represents where 'you' are, the user. The listener 
+  properties along with the source properties determine how the audio sample will 
+  be heard. For example their relative positions will determine the intensity 
+  of the sound.</p>
 
 <pre class=code>	
 <span class=codeComment><font color="#006600">    // Position of the source sound.</font></span>
@@ -115,10 +117,10 @@ the sound.</p>
 <span class=codeComment><font color="#006600">    </font></span><font color="#0000FF">static float</font>[] listenerOri = { 0.0f, 0.0f, -1.0f,  0.0f, 1.0f, 0.0f };
 </pre>
 
-<p>In the above code we specify the position and velocity of the source and listener 
-  objects. These arrays are vector based Cartesian coordinates. You could easily 
-  build a structure or class to do the same thing. In this example I used arrays 
-  for simplicity.</p>
+<p align="justify">In the above code we specify the position and velocity of the 
+  source and listener objects. These arrays are vector based Cartesian coordinates. 
+  You could easily build a structure or class to do the same thing. In this example 
+  I used arrays for simplicity.</p>
 <p>Here we will create a function that loads all of our sound data from a file. 
 </p>
 <pre class=code><span class=codeComment><font color="#006600">    </font></span><font color="#0000FF">static int</font> LoadALData() {
@@ -136,15 +138,15 @@ the sound.</p>
 <span class=codeComment><font color="#006600">    </font></span><span class=codeComment><font color="#006600">    </font></span>al.alBufferData(buffer[0], format[0], data[0], size[0], freq[0]);
 <span class=codeComment><font color="#006600">    </font></span><span class=codeComment><font color="#006600">    </font></span>ALut.alutUnloadWAV(format[0],data[0],size[0],freq[0]); 
 </pre>
-<p>The function 'alGenBuffers' will create the buffer objects and store them in 
-the variable we passed it. It's important to do an error check to make sure 
-everything went smoothly. There may be a case in which OpenAL could not generate 
-a buffer object due to a lack of memory. In this case it would set the error 
-bit.</p>
-<p>The ALut is very helpful here. It opens up the file for us and gives us all 
-  the information we need to create the buffer. And after we have attached all 
-  this data to the buffer it will help use dispose of the data. It all works in 
-  a clean and efficient manner.</p>
+<p align="justify">The function 'alGenBuffers' will create the buffer objects 
+  and store them in the variable we passed it. It's important to do an error check 
+  to make sure everything went smoothly. There may be a case in which OpenAL could 
+  not generate a buffer object due to a lack of memory. In this case it would 
+  set the error bit.</p>
+<p align="justify">The ALut is very helpful here. It opens up the file for us 
+  and gives us all the information we need to create the buffer. And after we 
+  have attached all this data to the buffer it will help use dispose of the data. 
+  It all works in a clean and efficient manner.</p>
 <pre>
 
 <span class=codeComment><font color="#006600">    </font></span><span class=codeComment><font color="#006600">    </font></span><font color="#006600">// Bind buffer with a source.</font>
@@ -159,17 +161,18 @@ bit.</p>
 <span class=codeComment><font color="#006600">    </font></span>    al.alSourcefv(source[0], AL.AL_POSITION, sourcePos);
 <span class=codeComment><font color="#006600">    </font></span>    al.alSourcefv(source[0], AL.AL_VELOCITY, sourceVel);
 <span class=codeComment><font color="#006600">    </font></span>    al.alSourcei (source[0], AL.AL_LOOPING,  loop[0]     );</pre>
-<p>We generate a source object in the same manner we generated the buffer object. 
-Then we define the source properties that it will use when it's in playback. The 
-most important of these properties is the buffer it should use. This tells the 
-source which audio sample to playback. In this case we only have one so we bind 
-it. We also tell the source it's position and velocity which we defined earlier.</p>
-<p>One more thing on 'alGenBuffers' and 'alGenSources'. In some example code I 
-have seen these functions will return an integer value for the number of 
-buffers/sources created. I suppose this was meant as an error checking feature 
-that was left out in a later version. If you see this done in other code don't 
-use it yourself. If you want to do this check, use 'alGetError' instead (like we 
-have done above).</p>
+<p align="justify">We generate a source object in the same manner we generated 
+  the buffer object. Then we define the source properties that it will use when 
+  it's in playback. The most important of these properties is the buffer it should 
+  use. This tells the source which audio sample to playback. In this case we only 
+  have one so we bind it. We also tell the source it's position and velocity which 
+  we defined earlier.</p>
+<p align="justify">One more thing on 'alGenBuffers' and 'alGenSources'. In some 
+  example code I have seen these functions will return an integer value for the 
+  number of buffers/sources created. I suppose this was meant as an error checking 
+  feature that was left out in a later version. If you see this done in other 
+  code don't use it yourself. If you want to do this check, use 'alGetError' instead 
+  (like we have done above).</p>
 <pre class=code>
 
 <span class=codeComment><font color="#006600">    </font></span><span class=codeComment><font color="#006600">    </font></span><font color="#006600">// Do another error check and return.</font>
@@ -203,11 +206,11 @@ all the memory and audio devices that our program may be using.</p>
 <span class=codeComment><font color="#006600">    </font></span><span class=codeComment><font color="#006600">    </font></span>al.alGetError();
 
 </pre>
-<p>The function 'alutInit' will setup everything that the Alc needs to do for 
-us. Basically Alut creates a single OpenAL context through Alc and sets it to 
-current. On the Windows platform it initializes DirectSound. We also do an 
-initial call to the error function to clear it. Every time we call 'glGetError' 
-it will reset itself to 'AL_NO_ERROR'.</p>
+<p align="justify">The function 'alutInit' will setup everything that the Alc 
+  needs to do for us. Basically Alut creates a single OpenAL context through Alc 
+  and sets it to current. On the Windows platform it initializes DirectSound. 
+  We also do an initial call to the error function to clear it. Every time we 
+  call 'glGetError' it will reset itself to 'AL_NO_ERROR'.</p>
 <pre class=code>
 
 <span class=codeComment><font color="#006600">    </font><font color="#006600">    </font><font color="#006600">// Load the wav data.</font></span>
@@ -229,9 +232,9 @@ it will reset itself to 'AL_NO_ERROR'.</p>
 <span class=codeComment><font color="#006600">    </font></span><span class=codeComment><font color="#006600">    </font></span><span class=codeComment><font color="#006600">    </font></span>)
 <span class=codeComment><font color="#006600">    </font></span><span class=codeComment><font color="#006600">    </font></span>);
 </pre>
-<p>We will check to see if the wav files loaded correctly. If not we must exit 
-the program. Then we update the listener values, and finally we set our exit 
-procedure.</p>
+<p align="justify">We will check to see if the wav files loaded correctly. If 
+  not we must exit the program. Then we update the listener values, and finally 
+  we set our exit procedure.</p>
 <pre class=code><font color="#0000FF">        char</font>[] c = new <font color="#0000FF">char</font>[1];
 <font color="#0000FF">    </font><font color="#0000FF">    while</font>(c[0] != 'q') {	
 <font color="#0000FF">    </font><font color="#0000FF">    </font><font color="#0000FF">try</font> {
@@ -261,13 +264,14 @@ procedure.</p>
 }
 
 </pre>
-<p>This is the interesting part of the tutorial. It's a very basic loop that 
-lets us control the playback of the audio sample. Pressing 'p' will replay the 
-sample, pressing 's' will stop the sample, and pressing 'h' will pause the 
-sample. Pressing 'q' will exit the program.</p>
-<p>Well there it is. Your first delve into OpenAL. I hope it was made simple 
-enough for you. It may have been a little too simple for the 1337 h4X0r, but we 
-all got to start somewhere. Things will get more advanced as we go along.</p>
+<p align="justify">This is the interesting part of the tutorial. It's a very basic 
+  loop that lets us control the playback of the audio sample. Pressing 'p' will 
+  replay the sample, pressing 's' will stop the sample, and pressing 'h' will 
+  pause the sample. Pressing 'q' will exit the program.</p>
+<p align="justify">Well there it is. Your first delve into OpenAL. I hope it was 
+  made simple enough for you. It may have been a little too simple for the 1337 
+  h4X0r, but we all got to start somewhere. Things will get more advanced as we 
+  go along.</p>
 <p> <a href="lesson1.zip">Download 
   the Java Source and Ant Build File</a></p>
 <table border="0" cellspacing="1" style="border-collapse: collapse" width="100%" id="AutoNumber2" bgcolor="#666699">
