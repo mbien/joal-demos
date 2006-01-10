@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+   - Ant build for the JOAL demos. This build has been tested with ANT 1.5.3.
+   -
+   - In order for this build to succeed the resulting jar files from this build
+   - (joal-demos.jar) must not be on the CLASSPATH.
+   -
+   - This build requires that the joal project has been checked out into a sibling
+   - directory to the joal-demos top-level directory and that the joal.jar has been
+   - built into its build directory.
+   -->
+<project name="JOAL.demos" default="all">
+    <!-- 
+       - Make sure that joal-demos.jar is not on the CLASSPATH; this can
+       - cause builds to fail since if this Java process has the jar file
+       - open we can not overwrite it.
+      -->
+    <target name="test.for.joal.demos.jar">
+        <available property="joal.demos.jar.on.class.path" classname="demos.devmaster.lesson1.SingleStaticSource" />
+    </target>
+    <target name="java.class.path.validate" depends="test.for.joal.demos.jar" if="joal.demos.jar.on.class.path">
+        <fail>
+        
+    ******************************************************************
+    ** Your CLASSPATH environment variable appears to be set (some  **
+    ** JOAL demos' classes are currently visible to the build.)     **
+    ** This can cause the build to fail. Please unset your          **
+    ** CLASSPATH variable and restart the build.                    **
+    ******************************************************************
+        </fail>
+    </target>
+
+    <target name="init" depends="java.class.path.validate">
+        <property name="joal.jar"            value="../../joal/build/joal.jar" />
+        <property name="classes"             value="../build/classes" />
+        <property name="src"                 value="../src" />
+        <property name="joal.demos.jar"      value="../build/joal-demos.jar" />
+    </target>
+
+    <target name="all" depends="init">
+        <mkdir dir="${classes}" />
+        <path id="joal.classpath">
+            <pathelement path="${classpath}" />
+            <pathelement location="${joal.jar}" />
+        </path>
+        <javac destdir="${classes}" source="1.4" debug="true" debuglevel="source,lines">
+            <src path="${src}" />
+            <classpath refid="joal.classpath" />
+        </javac>
+        <jar destfile="${joal.demos.jar}">
+            <fileset dir="${classes}" />
+            <fileset dir="${src}/java">
+               <include name="demos/data/**" />
+            </fileset>
+        </jar>
+    </target>
+
+    <target name="clean" depends="init">
+        <delete includeEmptyDirs="true" quiet="true">
+            <fileset dir="../build" />
+        </delete>
+    </target>
+ </project>
