@@ -35,6 +35,7 @@
         <property name="classes"             value="../build/classes" />
         <property name="src"                 value="../src" />
         <property name="joal.demos.jar"      value="../build/joal-demos.jar" />
+        <property name="joal.demos.src.zip"  value="../build/joal-demos-src.zip" />
     </target>
 
     <target name="all" depends="init">
@@ -53,6 +54,13 @@
                <include name="demos/data/**" />
             </fileset>
         </jar>
+	<!-- Build a source archive as well -->
+        <delete file="${joal.demos.src.zip}" />
+        <zip destfile="${joal.demos.src.zip}"
+	     basedir="../.."
+	     includes="joal-demos/make/**,joal-demos/src/**"
+	     excludes="**/*.class,**/*~"
+	     />
     </target>
 
     <target name="clean" depends="init">
