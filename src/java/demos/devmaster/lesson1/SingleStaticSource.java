@@ -40,6 +40,11 @@ import java.nio.ByteBuffer;
 import net.java.games.joal.*;
 import net.java.games.joal.util.*;
 
+// For the GUI
+import java.awt.*;
+import java.awt.event.*;
+import javax.swing.*;
+
 /**
  * Adapted from <a href="http://www.devmaster.net/">DevMaster</a>
  * <a href="http://www.devmaster.net/articles/openal-tutorials/lesson1.php">SingleStaticSource Tutorial</a>
@@ -73,6 +78,31 @@ public class SingleStaticSource {
 
   // Orientation of the listener. (first 3 elems are "at", second 3 are "up")
   static float[] listenerOri = { 0.0f, 0.0f, -1.0f, 0.0f, 1.0f, 0.0f };
+
+  static boolean initialized = false;
+  static boolean initialize() {
+    if (initialized) {
+      return true;
+    }
+
+    // Initialize OpenAL and clear the error bit.
+    try {
+      ALut.alutInit();
+      al = ALFactory.getAL();
+      al.alGetError();
+    } catch (ALException e) {
+      e.printStackTrace();
+      return false;
+    }
+    // Load the wav data.
+    if (loadALData() == AL.AL_FALSE)
+      return false;
+
+    setListenerValues();
+
+    initialized = true;
+    return true;
+  }
 
   static int loadALData() {
 
@@ -135,50 +165,92 @@ public class SingleStaticSource {
   }
 
   public static void main(String[] args) {
-    // Initialize OpenAL and clear the error bit.
-    try {
-      ALut.alutInit();
-      al = ALFactory.getAL();
-      al.alGetError();
-    } catch (ALException e) {
-      e.printStackTrace();
-      return;
+    boolean gui = false;
+
+    for (int i = 0; i < args.length; i++) {
+      if (args[i].equals("-gui"))
+        gui = true;
     }
-    // Load the wav data.
-    if (loadALData() == AL.AL_FALSE)
-      System.exit(1);
 
-    setListenerValues();
-
-    char[] c = new char[1];
-    while (c[0] != 'q') {
-      try {
-        BufferedReader buf =
-          new BufferedReader(new InputStreamReader(System.in));
-        System.out.println(
-                           "Press a key and hit ENTER: \n"
-                           + "'p' to play, 's' to stop, " +
-                           "'h' to pause and 'q' to quit");
-        buf.read(c);
-        switch (c[0]) {
-        case 'p' :
-          // Pressing 'p' will begin playing the sample.
-          al.alSourcePlay(source[0]);
-          break;
-        case 's' :
-          // Pressing 's' will stop the sample from playing.
-          al.alSourceStop(source[0]);
-          break;
-        case 'h' :
-          // Pressing 'n' will pause (hold) the sample.
-          al.alSourcePause(source[0]);
-          break;
-        case 'q' :
-          killAllData();
-          break;
-        }
-      } catch (IOException e) {
+    if (gui) {
+      JFrame frame = new JFrame("Single Static Source - DevMaster OpenAL Lesson 1");
+      frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+      frame.getContentPane().setLayout(new GridLayout(4, 1));
+      JButton button = new JButton("Play sound");
+      button.addActionListener(new ActionListener() {
+          public void actionPerformed(ActionEvent e) {
+            if (!initialize())
+              System.exit(1);
+            al.alSourcePlay(source[0]);
+          }
+        });
+      frame.getContentPane().add(button);
+      button = new JButton("Stop playing");
+      button.addActionListener(new ActionListener() {
+          public void actionPerformed(ActionEvent e) {
+            if (!initialize())
+              System.exit(1);
+            al.alSourceStop(source[0]);
+          }
+        });
+      frame.getContentPane().add(button);
+      button = new JButton("Pause sound");
+      button.addActionListener(new ActionListener() {
+          public void actionPerformed(ActionEvent e) {
+            if (!initialize())
+              System.exit(1);
+            al.alSourcePause(source[0]);
+          }
+        });
+      frame.getContentPane().add(button);
+      button = new JButton("Quit");
+      button.addActionListener(new ActionListener() {
+          public void actionPerformed(ActionEvent e) {
+            if (!initialize())
+              System.exit(1);
+            killAllData();
+            System.exit(0);
+          }
+        });
+      frame.getContentPane().add(button);
+      frame.pack();
+      frame.setVisible(true);
+    } else {
+      // Initialize OpenAL and clear the error bit.
+      if (!initialize()) {
         System.exit(1);
+      }
+
+      char[] c = new char[1];
+      while (c[0] != 'q') {
+        try {
+          BufferedReader buf =
+            new BufferedReader(new InputStreamReader(System.in));
+          System.out.println(
+                             "Press a key and hit ENTER: \n"
+                             + "'p' to play, 's' to stop, " +
+                             "'h' to pause and 'q' to quit");
+          buf.read(c);
+          switch (c[0]) {
+          case 'p' :
+            // Pressing 'p' will begin playing the sample.
+            al.alSourcePlay(source[0]);
+            break;
+          case 's' :
+            // Pressing 's' will stop the sample from playing.
+            al.alSourceStop(source[0]);
+            break;
+          case 'h' :
+            // Pressing 'n' will pause (hold) the sample.
+            al.alSourcePause(source[0]);
+            break;
+          case 'q' :
+            killAllData();
+            break;
+          }
+        } catch (IOException e) {
+          System.exit(1);
+        }
       }
     }
   }

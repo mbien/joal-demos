@@ -207,5 +207,6 @@ public class MultipleSources {
       }
     }
     killAllData();
+    System.exit(0);
   }
 }

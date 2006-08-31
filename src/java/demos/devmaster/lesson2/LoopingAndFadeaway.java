@@ -144,5 +144,6 @@ public class LoopingAndFadeaway {
       ticker += System.currentTimeMillis() - lastTime;
       lastTime = System.currentTimeMillis(); 
     }
+    System.exit(0);
   }
 }

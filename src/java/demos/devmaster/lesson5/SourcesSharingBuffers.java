@@ -38,6 +38,12 @@ import java.io.*;
 import java.nio.*;
 import java.util.*;
 
+// For the gui
+import java.awt.GridLayout;
+import java.awt.event.*;
+import javax.swing.*;
+
+
 import net.java.games.joal.*;
 import net.java.games.joal.util.*;
 
@@ -224,45 +230,93 @@ public class SourcesSharingBuffers {
     exitOpenAL();
   }
 
-  public static void main(String[] args) {
+  static boolean initialized = false;
+  static void initialize() {
+    if (initialized)
+      return;
+    initialized = true;
     try {
       initOpenAL();
     } catch (ALException e) {
       e.printStackTrace();
       System.exit(1);
     }
-    if (loadALData() == AL.AL_FALSE) {
+    if (loadALData() == AL.AL_FALSE)
       System.exit(1);
-    }
     setListenerValues();
-    char[] c = new char[1];
-    while(c[0] != 'q') {    
-      try {
-        BufferedReader buf =
-          new BufferedReader(new InputStreamReader(System.in));
-        System.out.println("Press a key and hit ENTER: \n" +
-                           "\t'w' for Water Drop\n" +
-                           "\t't' for Thunder\n" +
-                           "\t's' for Stream\n" +
-                           "\t'r' for Rain\n" +
-                           "\t'o' for Ocean\n" +
-                           "\t'c' for Chimes\n" +
-                           "\n'q' to Quit\n");
+  }
 
-        buf.read(c);
-        switch(c[0]) {
-        case 'w': addSource(WATERDROP); break;
-        case 't': addSource(THUNDER); break;
-        case 's': addSource(STREAM); break;
-        case 'r': addSource(RAIN); break;
-        case 'o': addSource(OCEAN); break;
-        case 'c': addSource(CHIMES); break;
+  private static void addButton(JFrame frame, String text, final int whichSound) {
+    JButton button = new JButton(text);
+    button.addActionListener(new ActionListener() {
+        public void actionPerformed(ActionEvent e) {
+          initialize();
+          addSource(whichSound);
         }
-      } catch (IOException e) {
-        killALData();
-        System.exit(1);
-      }
+      });
+    frame.getContentPane().add(button);
+  }
+
+  public static void main(String[] args) {
+    boolean gui = false;
+
+    for (int i = 0; i < args.length; i++) {
+      if (args[i].equals("-gui"))
+        gui = true;
     }
-    killALData();
+    
+    if (gui) {
+      JFrame frame = new JFrame("Sources Sharing Buffers - DevMaster OpenAL Lesson 5");
+      frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+      frame.getContentPane().setLayout(new GridLayout(7, 1));
+      addButton(frame, "Add Water Drop", WATERDROP);
+      addButton(frame, "Add Thunder",    THUNDER);
+      addButton(frame, "Add Stream",     STREAM);
+      addButton(frame, "Add Rain",       RAIN);
+      addButton(frame, "Add Ocean",      OCEAN);
+      addButton(frame, "Add Chimes",     CHIMES);
+
+      JButton button = new JButton("Quit");
+      button.addActionListener(new ActionListener() {
+          public void actionPerformed(ActionEvent e) {
+            System.exit(0);
+          }
+        });
+      frame.getContentPane().add(button);
+
+      frame.pack();
+      frame.setVisible(true);
+    } else {
+      initialize();
+      char[] c = new char[1];
+      while(c[0] != 'q') {    
+        try {
+          BufferedReader buf =
+            new BufferedReader(new InputStreamReader(System.in));
+          System.out.println("Press a key and hit ENTER: \n" +
+                             "\t'w' for Water Drop\n" +
+                             "\t't' for Thunder\n" +
+                             "\t's' for Stream\n" +
+                             "\t'r' for Rain\n" +
+                             "\t'o' for Ocean\n" +
+                             "\t'c' for Chimes\n" +
+                             "\n'q' to Quit\n");
+
+          buf.read(c);
+          switch(c[0]) {
+          case 'w': addSource(WATERDROP); break;
+          case 't': addSource(THUNDER); break;
+          case 's': addSource(STREAM); break;
+          case 'r': addSource(RAIN); break;
+          case 'o': addSource(OCEAN); break;
+          case 'c': addSource(CHIMES); break;
+          }
+        } catch (IOException e) {
+          killALData();
+          System.exit(1);
+        }
+      }
+      killALData();
+    }
   }
 }
