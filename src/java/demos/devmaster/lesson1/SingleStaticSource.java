@@ -56,31 +56,132 @@ import javax.swing.*;
 
 public class SingleStaticSource {
 
-  static AL al;
+  public SingleStaticSource(boolean gui) {
+    this(gui, null);
+  }
+
+  public SingleStaticSource(boolean gui, Container parent) {
+    if (gui) {
+      JFrame frame = null;
+
+      if (parent == null) {
+        frame = new JFrame("Single Static Source - DevMaster OpenAL Lesson 1");
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        parent = frame.getContentPane();
+      }
+
+      JPanel container = new JPanel();
+      container.setLayout(new GridLayout(4, 1));
+
+      JButton button = new JButton("Play sound");
+      button.addActionListener(new ActionListener() {
+          public void actionPerformed(ActionEvent e) {
+            if (!initialize())
+              System.exit(1);
+            al.alSourcePlay(source[0]);
+          }
+        });
+      container.add(button);
+      button = new JButton("Stop playing");
+      button.addActionListener(new ActionListener() {
+          public void actionPerformed(ActionEvent e) {
+            if (!initialize())
+              System.exit(1);
+            al.alSourceStop(source[0]);
+          }
+        });
+      container.add(button);
+      button = new JButton("Pause sound");
+      button.addActionListener(new ActionListener() {
+          public void actionPerformed(ActionEvent e) {
+            if (!initialize())
+              System.exit(1);
+            al.alSourcePause(source[0]);
+          }
+        });
+      container.add(button);
+      button = new JButton("Quit");
+      button.addActionListener(new ActionListener() {
+          public void actionPerformed(ActionEvent e) {
+            if (!initialize())
+              System.exit(1);
+            killAllData();
+            System.exit(0);
+          }
+        });
+      container.add(button);
+
+      parent.add(container);
+
+      if (frame != null) {
+        frame.pack();
+        frame.setVisible(true);
+      }
+    } else {
+      // Initialize OpenAL and clear the error bit.
+      if (!initialize()) {
+        System.exit(1);
+      }
+
+      char[] c = new char[1];
+      while (c[0] != 'q') {
+        try {
+          BufferedReader buf =
+            new BufferedReader(new InputStreamReader(System.in));
+          System.out.println(
+                             "Press a key and hit ENTER: \n"
+                             + "'p' to play, 's' to stop, " +
+                             "'h' to pause and 'q' to quit");
+          buf.read(c);
+          switch (c[0]) {
+          case 'p' :
+            // Pressing 'p' will begin playing the sample.
+            al.alSourcePlay(source[0]);
+            break;
+          case 's' :
+            // Pressing 's' will stop the sample from playing.
+            al.alSourceStop(source[0]);
+            break;
+          case 'h' :
+            // Pressing 'n' will pause (hold) the sample.
+            al.alSourcePause(source[0]);
+            break;
+          case 'q' :
+            killAllData();
+            break;
+          }
+        } catch (IOException e) {
+          System.exit(1);
+        }
+      }
+    }
+  }
+
+  private AL al;
 
   // Buffers hold sound data.
-  static int[] buffer = new int[1];
+  private int[] buffer = new int[1];
 
   // Sources are points emitting sound.
-  static int[] source = new int[1];
+  private int[] source = new int[1];
 
   // Position of the source sound.
-  static float[] sourcePos = { 0.0f, 0.0f, 0.0f };
+  private float[] sourcePos = { 0.0f, 0.0f, 0.0f };
 
   // Velocity of the source sound.
-  static float[] sourceVel = { 0.0f, 0.0f, 0.0f };
+  private float[] sourceVel = { 0.0f, 0.0f, 0.0f };
 
   // Position of the listener.
-  static float[] listenerPos = { 0.0f, 0.0f, 0.0f };
+  private float[] listenerPos = { 0.0f, 0.0f, 0.0f };
 
   // Velocity of the listener.
-  static float[] listenerVel = { 0.0f, 0.0f, 0.0f };
+  private float[] listenerVel = { 0.0f, 0.0f, 0.0f };
 
   // Orientation of the listener. (first 3 elems are "at", second 3 are "up")
-  static float[] listenerOri = { 0.0f, 0.0f, -1.0f, 0.0f, 1.0f, 0.0f };
+  private float[] listenerOri = { 0.0f, 0.0f, -1.0f, 0.0f, 1.0f, 0.0f };
 
-  static boolean initialized = false;
-  static boolean initialize() {
+  private boolean initialized = false;
+  private boolean initialize() {
     if (initialized) {
       return true;
     }
@@ -104,7 +205,7 @@ public class SingleStaticSource {
     return true;
   }
 
-  static int loadALData() {
+  private int loadALData() {
 
     // variables to load into
 
@@ -153,13 +254,13 @@ public class SingleStaticSource {
     return AL.AL_FALSE;
   }
 
-  static void setListenerValues() {
+  private void setListenerValues() {
     al.alListenerfv(AL.AL_POSITION, listenerPos, 0);
     al.alListenerfv(AL.AL_VELOCITY, listenerVel, 0);
     al.alListenerfv(AL.AL_ORIENTATION, listenerOri, 0);
   }
 
-  static void killAllData() {
+  private void killAllData() {
     al.alDeleteBuffers(1, buffer, 0);
     al.alDeleteSources(1, source, 0);
   }
@@ -172,86 +273,6 @@ public class SingleStaticSource {
         gui = true;
     }
 
-    if (gui) {
-      JFrame frame = new JFrame("Single Static Source - DevMaster OpenAL Lesson 1");
-      frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-      frame.getContentPane().setLayout(new GridLayout(4, 1));
-      JButton button = new JButton("Play sound");
-      button.addActionListener(new ActionListener() {
-          public void actionPerformed(ActionEvent e) {
-            if (!initialize())
-              System.exit(1);
-            al.alSourcePlay(source[0]);
-          }
-        });
-      frame.getContentPane().add(button);
-      button = new JButton("Stop playing");
-      button.addActionListener(new ActionListener() {
-          public void actionPerformed(ActionEvent e) {
-            if (!initialize())
-              System.exit(1);
-            al.alSourceStop(source[0]);
-          }
-        });
-      frame.getContentPane().add(button);
-      button = new JButton("Pause sound");
-      button.addActionListener(new ActionListener() {
-          public void actionPerformed(ActionEvent e) {
-            if (!initialize())
-              System.exit(1);
-            al.alSourcePause(source[0]);
-          }
-        });
-      frame.getContentPane().add(button);
-      button = new JButton("Quit");
-      button.addActionListener(new ActionListener() {
-          public void actionPerformed(ActionEvent e) {
-            if (!initialize())
-              System.exit(1);
-            killAllData();
-            System.exit(0);
-          }
-        });
-      frame.getContentPane().add(button);
-      frame.pack();
-      frame.setVisible(true);
-    } else {
-      // Initialize OpenAL and clear the error bit.
-      if (!initialize()) {
-        System.exit(1);
-      }
-
-      char[] c = new char[1];
-      while (c[0] != 'q') {
-        try {
-          BufferedReader buf =
-            new BufferedReader(new InputStreamReader(System.in));
-          System.out.println(
-                             "Press a key and hit ENTER: \n"
-                             + "'p' to play, 's' to stop, " +
-                             "'h' to pause and 'q' to quit");
-          buf.read(c);
-          switch (c[0]) {
-          case 'p' :
-            // Pressing 'p' will begin playing the sample.
-            al.alSourcePlay(source[0]);
-            break;
-          case 's' :
-            // Pressing 's' will stop the sample from playing.
-            al.alSourceStop(source[0]);
-            break;
-          case 'h' :
-            // Pressing 'n' will pause (hold) the sample.
-            al.alSourcePause(source[0]);
-            break;
-          case 'q' :
-            killAllData();
-            break;
-          }
-        } catch (IOException e) {
-          System.exit(1);
-        }
-      }
-    }
+    new SingleStaticSource(gui);
   }
 }
