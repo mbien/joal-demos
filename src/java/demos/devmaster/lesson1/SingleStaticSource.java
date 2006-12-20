@@ -57,10 +57,10 @@ import javax.swing.*;
 public class SingleStaticSource {
 
   public SingleStaticSource(boolean gui) {
-    this(gui, null);
+    this(gui, null, true);
   }
 
-  public SingleStaticSource(boolean gui, Container parent) {
+  public SingleStaticSource(boolean gui, Container parent, boolean showQuitButton) {
     if (gui) {
       JFrame frame = null;
 
@@ -71,7 +71,7 @@ public class SingleStaticSource {
       }
 
       JPanel container = new JPanel();
-      container.setLayout(new GridLayout(4, 1));
+      container.setLayout(new GridLayout((showQuitButton ? 4 : 3), 1));
 
       JButton button = new JButton("Play sound");
       button.addActionListener(new ActionListener() {
@@ -100,16 +100,19 @@ public class SingleStaticSource {
           }
         });
       container.add(button);
-      button = new JButton("Quit");
-      button.addActionListener(new ActionListener() {
-          public void actionPerformed(ActionEvent e) {
-            if (!initialize())
-              System.exit(1);
-            killAllData();
-            System.exit(0);
-          }
-        });
-      container.add(button);
+
+      if (showQuitButton) {
+        button = new JButton("Quit");
+        button.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+              if (!initialize())
+                System.exit(1);
+              killAllData();
+              System.exit(0);
+            }
+          });
+        container.add(button);
+      }
 
       parent.add(container);
 
