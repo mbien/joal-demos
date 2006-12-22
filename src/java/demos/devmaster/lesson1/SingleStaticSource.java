@@ -199,8 +199,13 @@ public class SingleStaticSource {
       return false;
     }
     // Load the wav data.
-    if (loadALData() == AL.AL_FALSE)
+    try {
+      if (loadALData() == AL.AL_FALSE)
+        return false;
+    } catch (ALException e) {
+      e.printStackTrace();
       return false;
+    }
 
     setListenerValues();
 
@@ -221,7 +226,7 @@ public class SingleStaticSource {
     // Load wav data into a buffer.
     al.alGenBuffers(1, buffer, 0);
     if (al.alGetError() != AL.AL_NO_ERROR)
-      return AL.AL_FALSE;
+      throw new ALException("Error generating OpenAL buffers");
 
     ALut.alutLoadWAVFile(
       SingleStaticSource.class.getClassLoader().getResourceAsStream("demos/data/FancyPants.wav"),
@@ -241,20 +246,25 @@ public class SingleStaticSource {
     al.alGenSources(1, source, 0);
 
     if (al.alGetError() != AL.AL_NO_ERROR)
-      return AL.AL_FALSE;
+      throw new ALException("Error generating OpenAL source");
 
     al.alSourcei(source[0], AL.AL_BUFFER, buffer[0]);
     al.alSourcef(source[0], AL.AL_PITCH, 1.0f);
     al.alSourcef(source[0], AL.AL_GAIN, 1.0f);
-    al.alSourcefv(source[0], AL.AL_POSITION, sourcePos, 0);
-    al.alSourcefv(source[0], AL.AL_VELOCITY, sourceVel, 0);
     al.alSourcei(source[0], AL.AL_LOOPING, loop[0]);
 
-    // Do another error check and return.
-    if (al.alGetError() == AL.AL_NO_ERROR)
-      return AL.AL_TRUE;
+    // Do another error check
+    if (al.alGetError() != AL.AL_NO_ERROR)
+      throw new ALException("Error setting up OpenAL source");
 
-    return AL.AL_FALSE;
+    // Note: for some reason the following two calls are producing an
+    // error on one machine with NVidia's OpenAL implementation. This
+    // appears to be harmless, so just continue past the error if one
+    // occurs.
+    al.alSourcefv(source[0], AL.AL_POSITION, sourcePos, 0);
+    al.alSourcefv(source[0], AL.AL_VELOCITY, sourceVel, 0);
+
+    return AL.AL_TRUE;
   }
 
   private void setListenerValues() {
