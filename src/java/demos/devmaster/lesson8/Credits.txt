@@ -1,0 +1,12 @@
+
+1. This tutorial is an attempt at translating the OggVorbis streaming
+   tutorial at http://www.devmaster.net/articles/openal-tutorials/lesson8.php
+
+2. demos/lib/j-ogg-all.jar
+
+    This software is based on or using the J-Ogg library available from
+    http://www.j-ogg.de and copyrighted by Tor-Einar Jarnbjo.
+
+3. demos/data/crickets.ogg
+
+    This sample file is from the Freesound project at http://freesound.iua.upf.edu

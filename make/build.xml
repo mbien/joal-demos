@@ -32,28 +32,17 @@
 
     <target name="init" depends="java.class.path.validate">
         <property name="joal.jar"            value="../../joal/build/joal.jar" />
-        <property name="classes"             value="../build/classes" />
-        <property name="src"                 value="../src" />
-        <property name="joal.demos.jar"      value="../build/joal-demos.jar" />
-        <property name="joal.demos.src.zip"  value="../build/joal-demos-src.zip" />
+
+        <property name="build.dir"           value="../build" />
+        <property name="src.dir"             value="../src" />
+        <property name="classes.dir"         value="${build.dir}/classes" />
+        <property name="joal.demos.jar"      value="${build.dir}/joal-demos.jar" />
+        <property name="joal.demos.ogg.jar"  value="${build.dir}/j-ogg.jar" />
+        <property name="joal.demos.src.zip"  value="${build.dir}/joal-demos-src.zip" />
     </target>
 
-    <target name="all" depends="init">
-        <mkdir dir="${classes}" />
-        <path id="joal.classpath">
-            <pathelement path="${classpath}" />
-            <pathelement location="${joal.jar}" />
-        </path>
-        <javac destdir="${classes}" source="1.4" debug="true" debuglevel="source,lines">
-            <src path="${src}" />
-            <classpath refid="joal.classpath" />
-        </javac>
-        <jar destfile="${joal.demos.jar}">
-            <fileset dir="${classes}" />
-            <fileset dir="${src}/java">
-               <include name="demos/data/**" />
-            </fileset>
-        </jar>
+    <target name="all" depends="jar" description="Build everything">
+
 	<!-- Build a source archive as well -->
         <delete file="${joal.demos.src.zip}" />
         <zip destfile="${joal.demos.src.zip}"
@@ -63,9 +52,81 @@
 	     />
     </target>
 
+    <target name="jar" depends="compile" description="Build JOAL demos jar file">
+        <jar destfile="${joal.demos.jar}">
+            <fileset dir="${classes.dir}" />
+            <fileset dir="${src.dir}/java">
+               <include name="demos/data/**" />
+            </fileset>
+        </jar>
+    </target>
+
+    <target name="compile" depends="init">
+        <mkdir dir="${classes.dir}" />
+
+        <copy file="${src.dir}/java/demos/lib/j-ogg-all.jar"
+		tofile="${joal.demos.ogg.jar}"/>
+
+        <path id="joal.classpath">
+            <pathelement path="${classpath}" />
+            <pathelement location="${joal.jar}" />
+            <pathelement location="${joal.demos.ogg.jar}" />
+        </path>
+        <javac destdir="${classes.dir}" source="1.4" debug="true" debuglevel="source,lines">
+            <src path="${src.dir}" />
+            <classpath refid="joal.classpath" />
+        </javac>
+    </target>
+
     <target name="clean" depends="init">
         <delete includeEmptyDirs="true" quiet="true">
             <fileset dir="../build" />
         </delete>
+    </target>
+
+    <target name="lesson1" depends="jar" description="Run lesson1 (Single Static Source)">
+        <java classname="demos.devmaster.lesson1.SingleStaticSource" fork="true">
+            <classpath>
+		<pathelement location="${joal.jar}" />
+		<pathelement location="${joal.demos.jar}" />
+            </classpath>
+        </java>
+    </target>
+
+    <target name="lesson2" depends="jar" description="Run lesson2 (Looping and Fade Away)">
+        <java classname="demos.devmaster.lesson2.LoopingAndFadeaway" fork="true">
+            <classpath>
+		<pathelement location="${joal.jar}" />
+		<pathelement location="${joal.demos.jar}" />
+            </classpath>
+        </java>
+    </target>
+
+    <target name="lesson3" depends="jar" description="Run lesson3 (Multiple Sources)">
+        <java classname="demos.devmaster.lesson3.MultipleSources" fork="true">
+            <classpath>
+		<pathelement location="${joal.jar}" />
+		<pathelement location="${joal.demos.jar}" />
+            </classpath>
+        </java>
+    </target>
+
+    <target name="lesson5" depends="jar" description="Run lesson5 (Sources Sharing Buffers)">
+        <java classname="demos.devmaster.lesson5.SourcesSharingBuffers" fork="true">
+            <classpath>
+		<pathelement location="${joal.jar}" />
+		<pathelement location="${joal.demos.jar}" />
+            </classpath>
+        </java>
+    </target>
+
+    <target name="lesson8" depends="jar" description="Run lesson8 (Ogg/Vorbis Streaming)">
+        <java classname="demos.devmaster.lesson8.OggStreamer" fork="true">
+            <classpath>
+		<pathelement location="${joal.jar}" />
+		<pathelement location="${joal.demos.jar}" />
+		<pathelement location="${joal.demos.ogg.jar}" />
+            </classpath>
+        </java>
     </target>
  </project>
