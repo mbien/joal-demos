@@ -1,0 +1,427 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+  <title>Lesson 8: Ogg/Vorbis Streaming</title>
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+  <link rel="stylesheet" type="text/css" href="general.css">
+</head>
+<body>
+
+<div align="center"> 
+  <img id="NavBar" src="http://games.dev.java.net/images/navbar2p.gif" usemap="#NavBar_MAP" nofinside="~!   ~!" align="top" border="0" height="64" hspace="0" vspace="0" width="800"> </div>
+  
+<map name="NavBar_Map">
+<area shape="rect" alt="Projects" coords="356,14,440,46" href="http://games.dev.java.net" target="_self">
+<area shape="rect" alt="Wiki" coords="643,14,695,46" href="http://wiki.java.net/bin/view/Games">
+<area shape="rect" alt="Weblogs" coords="562,15,624,46" href="http://weblogs.java.net/weblogs/project/games">
+<area shape="rect" coords="463,16,541,45" href="http://www.javagaming.org/cgi-bin/JGNetForums/YaBB.cgi" target="_top" alt="Forums">
+<area shape="rect" alt="JavaGames Home" coords="147,16,334,48" href="http://community.java.net/games">
+<area shape="rect" alt="Java.net" coords="21,15,128,46" href="http://www.java.net" target="_self">
+</map>
+
+
+<br>
+
+
+<br>
+
+
+OpenAL Tutorials from DevMaster.net. Reprinted with Permission.<br>
+
+
+<br>
+
+
+
+<table style="border-collapse: collapse;" id="AutoNumber1" bgcolor="#666699" border="0" cellpadding="0" cellspacing="0" height="12" width="100%">
+
+
+    <tbody>
+
+    <tr>
+
+
+    <td height="12" valign="middle" width="47%">
+      
+      <p><b><font color="#ffffff">OpenAL 
+        Tutorials</font></b></p>
+
+      </td>
+
+
+      <td align="right" height="12" valign="middle" width="53%">
+      
+      <p align="right"><a href="http://devmaster.net/"><font color="#66ff99">DevMaster.net</font></a></p>
+
+      </td>
+
+
+    </tr>
+
+
+  
+  
+  </tbody>
+</table>
+
+
+<p class="title" align="left"><span class="title"><font size="5">Ogg/Vorbis Streaming
+</font></span><font size="4"><br>
+
+
+<b>Lesson 8</b></font></p>
+
+
+
+<p class="title" align="right"> <span class="author">Author: <a href="mailto:lightonthewater@hotmail.com"><font color="#888888">Jesse 
+  Maurais<br>
+
+
+  </font></a></span>Adapted for Java by: <a href="mailto:krishna_gadepalli@dev.java.net"><font color="#888888">Krishna
+ Gadepalli</font></a></p>
+
+ 
+<p></p>
+
+
+  
+<p><a href="http://download.java.net/media/joal/webstart/joal-lesson8.jnlp">Launch the Demo via Java Web Start</a> (not working yet)</p>
+
+
+
+<p align="justify">This is a translation of <a href="http://www.devmaster.net/articles/openal-tutorials/lesson8.php">
+OpenAL Lesson 8: OggVorbis Streaming Using The Source Queue</a>
+tutorial from <a href="http://devmaster.net/">DevMaster.net</a> to JOAL.
+
+</p>
+
+<p>
+<cite>"This software is based on or using the J-Ogg library available
+    from http://www.j-ogg.de and copyrighted by Tor-Einar Jarnbjo."</cite>
+
+</p>
+
+<h3>An Introduction to OggVorbis</h3>
+
+
+
+<p>Ever heard of Ogg? There's more to it than a funny sounding name. It's the 
+biggest thing to happen for audio compression since mp3's (also typically used 
+for music). Hopefully, one day, it will replace mp3's as the mainstream standard 
+for compressed audio. Is it better than mp3? That is a question that is a little 
+more difficult to answer. It's a pretty strong debate in some crowds. There are 
+various arguments about compression ratio vs. sound quality which can sometimes 
+get really cumbersome to read through. I personally don't have any opinion on 
+which is "better". I feel the evidence in either case is arguable and not worth 
+mentioning. But for me the fact that Ogg is royalty free (which mp3 is not) wins 
+the argument hands down. The mp3 licensing fee is by no means steep for 
+developers with deep pockets, but as an independent working on a project in your 
+spare time and on minimal resources, shelling out a few grand in fees is not an 
+option. Ogg may be the answer to your prayers.</p>
+
+
+
+<h3>Designing Your OggVorbis Streaming API</h3>
+
+
+<p>Without further ado let's get to some code.</p>
+
+
+<p>This tutorial will be written in Java and has two main classes: 
+<a href="https://joal-demos.dev.java.net/source/browse/joal-demos/src/java/demos/devmaster/lesson8/OggDecoder.java?view=markup"><var>OggDecoder</var></a> and
+<a href="https://joal-demos.dev.java.net/source/browse/joal-demos/src/java/demos/devmaster/lesson8/OggStreamer.java?view=markup"><var>OggStreamer</var></a>. The
+<var>OggDecoder</var> class is wrapper on the <a href="http://www.j-ogg.de">J-Ogg</a> library to decode an Ogg/Vorbis stream and will not be described in this
+tutorial. <var>OggStreamer</var> which is the main class doing most of the working for streaming using OpenAL is explained below.
+
+</p>
+
+<pre class="code">    // The size of a chunk from the stream that we want to read for each update.<br>    private static int BUFFER_SIZE = 4096*8;<br></pre>
+
+
+
+<p>'<var>BUFFER_SIZE</var>' defines how big a chunk we want 
+to read from the stream on each update. You will find (with a little 
+experimentation) that larger buffers usually produce better sound quality since 
+they don't update as often, and will generally avoid any abrupt pauses or sound 
+distortions. Of course making your buffer too big will also eat up more memory. 
+Making a stream redundant. I beleive 4096 is the minimum buffer size one can 
+have. I don't recommend using one that small. I tried, and it caused many 
+clicks.</p>
+
+
+<p>So why should we even bother with streaming? Why not load the whole file into 
+a buffer and then play it? Well, that is a good question. The quick answer is 
+that there is too much audio data. Even though the actual Ogg file size is quite 
+small (usually around 1-3 MB) you must remember that is compressed audio data. 
+You cannot play the compressed form of the data. It must be decompressed and 
+formatted into a form OpenAL recognizes before it can be used in a buffer. That 
+is why we stream the file.</p>
+
+
+
+<pre class="code">    /**<br>     * The main loop to initialize and play the entire stream<br>     */<br>    public boolean playstream() { ... }<br><br>    /**<br>     * Open the Ogg/Vorbis stream and initialize OpenAL based<br>     * on the stream properties<br>     */<br>    public boolean open() { ... }<br><br>    /**<br>     * OpenAL cleanup<br>     */<br>    public void release() { ... }<br><br>    /**<br>     * Play the Ogg stream<br>     */<br>    public boolean playback() { ... }<br><br>    /**<br>     * Check if the source is playing<br>     */<br>    public boolean playing() { ... }<br><br>    /**<br>     * Update the stream if necessary<br>     */<br>    public boolean update() { ... }<br><br>    /**<br>     * Reloads a buffer (reads in the next chunk)<br>     */<br>    public boolean stream(int buffer) { ... }<br><br>    /**<br>     * Empties the queue<br>     */<br>    protected void empty() { ... }<br></pre>
+
+
+
+<p>This will be the base of our Ogg streaming api. The public methods are 
+everything that one needs to actually get the Ogg to play. Protected methods are 
+more internal procedures. I won't go over each function 
+just yet. I believe my comments should give you an idea of what they're for.</p>
+
+
+
+<pre class="code">    // Buffers hold sound data. There are two of them (front/back)<br>    private int[] buffers = new int[2];<br>    <br>    // Sources are points emitting sound.<br>    private int[] source = new int[1];<br>    <br>    private int format;	// OpenAL data format<br>    private int rate;	// sample rate<br></pre>
+
+
+
+<p>First thing that I want to point out is that we have 2 buffers dedicated to 
+the stream rather than the 1 we have always used for wav files. This is 
+important. To understand this I want you to think about how double buffering 
+works in OpenGL/DirectX. There is a front buffer that is "on screen" at any 
+given second, while a back buffer is being drawn to. Then they are swapped. The 
+back buffer becomes the front and vice versa. Pretty much the same principle is 
+applied here. There is a buffer being played and one waiting to be played. When 
+the buffer being played has finished the next one starts. While the next buffer 
+is being played, the first one is refilled with a new chunk of data from the 
+stream and is set to play once the one playing is finished. Confused yet? I'll 
+explain this in more detail later on.</p>
+
+
+
+<pre class="code">    public boolean open() {<br>	oggDecoder = new OggDecoder(url);<br><br>        if (!oggDecoder.initialize()) {<br>            System.err.println("Error initializing ogg stream...");<br>            return false;<br>        }<br>        <br>        if (oggDecoder.numChannels() == 1)<br>	    format = AL.AL_FORMAT_MONO16;<br>	else<br>	    format = AL.AL_FORMAT_STEREO16;<br>        <br>	rate = oggDecoder.sampleRate();<br><br>	...<br>    }<br></pre>
+
+
+
+<p>This creates a decoder for Ogg file, initializes it and grabs some information on the file. We extract the OpenAL format 
+enumerator based on how many channels are in the Ogg and then make a not of the sample rate.</p>
+
+
+
+<pre class="code">    public boolean open() {<br>	...<br><br>        al.alGenBuffers(2, buffers, 0); check();<br>        al.alGenSources(1, source, 0); check();<br><br>	al.alSourcefv(source[0], AL.AL_POSITION , sourcePos, 0);<br>	al.alSourcefv(source[0], AL.AL_VELOCITY , sourceVel, 0);<br>	al.alSourcefv(source[0], AL.AL_DIRECTION, sourceDir, 0);<br>        <br>        al.alSourcef(source[0], AL.AL_ROLLOFF_FACTOR,  0.0f    );<br>        al.alSourcei(source[0], AL.AL_SOURCE_RELATIVE, AL.AL_TRUE);<br><br>	...<br>    }<br></pre>
+
+
+
+<p>You've seen most of this before. We set a bunch of default values, position, 
+velocity, direction... But what is rolloff factor? This has to do with 
+attenuation. I will cover attenuation in a later article so I won't go too 
+in-depth, but I will explain it basically. Rolloff factor judges the strength of 
+attenuation over distance. By setting it to 0 we will have turned it off. This 
+means that no matter how far away the Listener is to the source of the Ogg they 
+will still hear it. The same idea applies to source relativity.</p>
+
+
+
+<pre class="code">    public void release() {<br>	al.alSourceStop(source[0]);<br>	empty();<br><br>	al.alDeleteSources(1, source, 0); check();<br>	al.alDeleteBuffers(2, buffers, 0); check();<br>    }<br></pre>
+
+
+<p>We can clean up after ourselves using this. We stop the source, empty out any 
+buffers that are still in the queue, and destroy our objects.
+
+</p>
+
+<pre class="code">    public boolean playback() {<br>	if (playing())<br>	    return true;<br>        <br>	if (!stream(buffers[0]))<br>	    return false;<br>        <br>	if(!stream(buffers[1]))<br>	    return false;<br>    <br>	al.alSourceQueueBuffers(source[0], 2, buffers, 0);<br>	al.alSourcePlay(source[0]);<br>    <br>        return true;<br>    }<br></pre>
+
+
+
+<p>This will start playing the Ogg. If the Ogg is already playing then there is 
+no reason to do it again. We must also initialize the buffers with their first 
+data set. We then queue them and tell the source to play them. This is the first 
+time we have used '<var>alSourceQueueBuffers</var>'. What it does basically is give the 
+source multiple buffers. These buffers will be played sequentially. I will 
+explain more on this along with the source queue momentarily. One thing to make 
+a note of though: if you are using a source for streaming never bind a buffer to 
+it using '<var>alSourcei</var>'. Always use '<var>alSourceQueueBuffers</var>' consistently.</p>
+
+
+
+<pre class="code">    public boolean playing() {<br>	int[] state = new int[1];<br>    <br>	al.alGetSourcei(source[0], AL.AL_SOURCE_STATE, state, 0);<br>    <br>	return (state[0] == AL.AL_PLAYING);<br>    }<br></pre>
+
+
+<p>This simplifies the task of checking the state of the source. </p>
+
+
+
+<pre class="code">    public boolean update() {<br>	int[] processed = new int[1];<br>	boolean active = true;<br><br>	al.alGetSourcei(source[0], AL.AL_BUFFERS_PROCESSED, processed, 0);<br><br>	while (processed[0] &gt; 0)<br>	{<br>	    int[] buffer = new int[1];<br>	    <br>	    al.alSourceUnqueueBuffers(source[0], 1, buffer, 0); check();<br><br>	    active = stream(buffer[0]);<br><br>	    al.alSourceQueueBuffers(source[0], 1, buffer, 0); check();<br><br>	    processed[0]--;<br>	}<br><br>	return active;<br>    }<br></pre>
+
+
+<p>Here is how the queue works in a nutshell: There is a 'list' of buffers. When 
+you unqueue a buffer it gets popped off of the front. When you queue a buffer it 
+gets pushed to the back. That's it. Simple enough?</p>
+
+
+<p>This is 1 of the 2 most important methods in the class. What we do in this 
+bit of code is check if any buffers have already been played. If there is then 
+we start popping each of them off the back of the queue, we refill the buffers 
+with data from the stream, and then we push them back onto the queue so that 
+they can be played. Hopefully the Listener will have no idea that we have done 
+this. It should sound like one long continuous chain of music. The '<var>stream</var>' 
+function also tells us if the stream is finished playing. This flag is reported 
+back when the function returns.</p>
+
+
+
+<pre class="code">    public boolean stream(int buffer) {<br>	byte[] pcm = new byte[BUFFER_SIZE];<br>	int    size = 0;<br><br>	try {<br>	    if ((size = oggDecoder.read(pcm)) &lt;= 0)<br>		return false;<br>	} catch (Exception e) {<br>	    e.printStackTrace();<br>	    return false;<br>	}<br><br>	ByteBuffer data = ByteBuffer.wrap(pcm, 0, size);<br>	al.alBufferData(buffer, format, data, size, rate);<br>	check();<br>	<br>	return true;<br>    }<br></pre>
+
+
+<p>This is another important method of the class. This part fills the buffers 
+with data from the Ogg bitstream. It's a little harder to get a grip on because 
+it's not explainable in a top down manner. '<var>oggDecoder.read</var>' does exactly what you may 
+be thinking it does; it reads data from the Ogg bitstream. The <a href="http://www.j-ogg.de/">j-ogg</a> library does all 
+the decoding of the bitstream, so we don't have to worry about that. This 
+function takes a <var>byte</var> array as an argument and will decode atmost the capacity of
+this array.  </p>
+
+
+<p>The return value of '<var>oggDecoder.read</var>' indicates several things. If the value of the 
+result is positive then it represents how much data was read. This is important 
+because '<var>read</var>' may not be able to read the entire size requested (usually 
+because it's at the end of the file and there's nothing left to read). Use the 
+result of '<var>read</var>' over '<var>BUFFER_SIZE</var>' in any case. If the result of '<var>read</var>' 
+happens to be negative then it indicates that there was an error in the 
+bitstream. If the result happens to equal zero then there is nothing left in the file to play.</p>
+
+
+
+<p> The last part of this method is the call to '<var>alBufferData</var>' 
+which fills the buffer id with the data that we streamed from the Ogg using '<var>read</var>'. 
+We employ the '<var>format</var>' and '<var>rate</var>' values that we set up earlier</p>
+
+
+
+<pre class="code">    protected void empty() {<br>	int[] queued = new int[1];<br>	<br>	al.alGetSourcei(source[0], AL.AL_BUFFERS_QUEUED, queued, 0);<br>	<br>	while (queued[0] &gt; 0)<br>	{<br>	    int[] buffer = new int[1];<br>	<br>	    al.alSourceUnqueueBuffers(source[0], 1, buffer, 0);<br>	    check();<br><br>	    queued[0]--;<br>	}<br><br>	oggDecoder = null;<br>    }<br></pre>
+
+
+<p>This method will will unqueue any buffers that are pending on the source. </p>
+
+
+
+<pre class="code">    protected void check() {<br>        if (al.alGetError() != AL.AL_NO_ERROR)<br>            throw new ALException("OpenAL error raised...");<br>    }<br></pre>
+
+
+<p>This saves us some typing for our error checks.</p>
+
+
+
+<h3>Making Your Own OggVorbis Player</h3>
+
+
+<p>If you're with me so far then you must be pretty serious about getting this 
+to work for you. Don't worry! We are almost done. All that we need do now is use 
+our newly designed class to play an Ogg file. It should be a relatively simple 
+process from here on in. We have done the hardest part. I won't assume that you 
+will be using this in a game loop, but I'll keep it in mind when designing the 
+loop. </p>
+
+<p>This should be a no-brainer. </p>
+
+
+<pre class="code">
+    public boolean playstream() {
+        if (!open())
+            return false;
+        
+        oggDecoder.dump();
+        
+        if (!playback())
+            return false;
+        
+        while (update()) {
+            if (playing()) continue;
+            
+            if (!playback())
+                return false;
+        }
+        
+        return true;
+    }
+</pre>
+
+<p>The program opens the stream, dumps some stream information and then
+will continually loop as long as the '<var>update</var>' method continues to 
+return true, and it will continue to return true as long as it can successfully 
+read and play the audio stream. Within the loop we will make sure that the Ogg 
+is playing.</p>
+
+<h3>Answers To Questions You May Be Asking</h3>
+
+
+<h4>Can I use more than one buffer for the stream?</h4>
+
+
+<p>In short, yes. There can be any number of buffers queued on the source at a 
+time. Doing this may actually give you better results too. As I said earlier, 
+with just 2 buffers in the queue at any time and with the cpu being clocked out 
+(or if the system hangs), the source may actually finish playing before the 
+stream has decoded another chunk. Having 3 or even 4 buffers in the queue will 
+keep you a little further ahead in case you miss the update.</p>
+
+
+<h4>How often should I call ogg.update?</h4>
+
+
+<p>This is going to vary depending on several things. If you want a quick answer 
+I'll tell you to update as often as you can, but that is not really necessary. 
+As long as you update before the source finishes playing to the end of the 
+queue. The biggest factors that are going to affect this are the buffer size and 
+the number of buffers dedicated to the queue. Obviously if you have more data 
+ready to play to begin with less updates will be necessary.</p>
+
+
+<h4>Is it safe to stream more than one Ogg at a time?</h4>
+
+
+<p>It should be fine. I haven't performed any extreme testing but I don't see 
+why not. Generally you will not have that many streams anyway. You may have one 
+to play some background music, and the occasional character dialog for a game, 
+but most sound effects are too short to bother with streaming. Most of your 
+sources will only ever have one buffer attached to them.</p>
+
+
+<h4>So what is with the name?</h4>
+
+
+<p>"Ogg" is the name of Xiph.org's container format for audio, video, and 
+metadata. "Vorbis" is the name of a specific audio compression scheme that's 
+designed to be contained in Ogg. As for the specific meanings of the words... 
+well, that's a little harder to tell. I think they involve some strange 
+relationship to Terry Pratchett novels. Here is a little page that goes into the 
+details.</p>
+
+<table style="border-collapse: collapse;" id="AutoNumber2" bgcolor="#666699" border="0" cellspacing="1" width="100%">
+
+
+  <tbody>
+
+    <tr>
+
+ 
+    <td width="40%"> 
+      
+      <p dir="ltr"><font color="#ffffff" size="2">&copy; 2003 DevMaster.net. 
+        All rights reserved.</font></p>
+
+      </td>
+
+
+    <td width="60%"> 
+      
+      <p align="right" dir="ltr"><font size="2"><a href="mailto:webmaster@devmaster.net"> 
+        <font color="#ffffff">Contact us</font></a><font color="#ffffff"> if you 
+        want to write for us or for any comments, suggestions, or feedback.</font></font></p>
+
+      </td>
+
+
+  </tr>
+
+
+  
+  </tbody>
+</table>
+
+
+<p>&nbsp;</p>
+
+
+</body>
+</html>
