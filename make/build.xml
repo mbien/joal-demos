@@ -37,7 +37,6 @@
         <property name="src.dir"             value="../src" />
         <property name="classes.dir"         value="${build.dir}/classes" />
         <property name="joal.demos.jar"      value="${build.dir}/joal-demos.jar" />
-        <property name="joal.demos.ogg.jar"  value="${build.dir}/j-ogg.jar" />
         <property name="joal.demos.src.zip"  value="${build.dir}/joal-demos-src.zip" />
     </target>
 
@@ -64,13 +63,15 @@
     <target name="compile" depends="init">
         <mkdir dir="${classes.dir}" />
 
-        <copy file="${src.dir}/java/demos/lib/j-ogg-all.jar"
-		tofile="${joal.demos.ogg.jar}"/>
+        <copy todir="${build.dir}">
+	    <fileset dir="${src.dir}/java/demos/lib" includes="j-ogg-*.jar" />
+	</copy>
 
         <path id="joal.classpath">
             <pathelement path="${classpath}" />
             <pathelement location="${joal.jar}" />
-            <pathelement location="${joal.demos.ogg.jar}" />
+            <pathelement location="${build.dir}/j-ogg-oggd.jar" />
+            <pathelement location="${build.dir}/j-ogg-vorbisd.jar" />
         </path>
         <javac destdir="${classes.dir}" source="1.4" debug="true" debuglevel="source,lines">
             <src path="${src.dir}" />
@@ -125,7 +126,8 @@
             <classpath>
 		<pathelement location="${joal.jar}" />
 		<pathelement location="${joal.demos.jar}" />
-		<pathelement location="${joal.demos.ogg.jar}" />
+		<pathelement location="${build.dir}/j-ogg-oggd.jar" />
+		<pathelement location="${build.dir}/j-ogg-vorbisd.jar" />
             </classpath>
         </java>
     </target>

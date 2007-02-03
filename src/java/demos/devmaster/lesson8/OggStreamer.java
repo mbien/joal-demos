@@ -54,11 +54,8 @@ import net.java.games.joal.util.ALut;
  */
 public class OggStreamer {
     
-    OggDecoder oggDecoder;
-    
     static AL al = null;
-    static int BUFFER_SIZE = 4096*4;
-    
+
     static {
         // Initialize OpenAL and clear the error bit.
         try {
@@ -71,51 +68,59 @@ public class OggStreamer {
         }
     }
     
-    // Buffers hold sound data.
+    private OggDecoder oggDecoder;
+    
+    // The size of a chunk from the stream that we want to read for each update.
+    private static int BUFFER_SIZE = 4096*8;
+    
+    // Buffers hold sound data. There are two of them (front/back)
     private int[] buffers = new int[2];
     
     // Sources are points emitting sound.
     private int[] source = new int[1];
+    
+    private int format;	// OpenAL data format
+    private int rate;	// sample rate
     
     // Position, Velocity, Direction of the source sound.
     private float[] sourcePos = { 0.0f, 0.0f, 0.0f };
     private float[] sourceVel = { 0.0f, 0.0f, 0.0f };
     private float[] sourceDir = { 0.0f, 0.0f, 0.0f };
     
-    private int format;	// OpenAL data format
-    private int rate;	// sample rate
-    
+    private URL url;
+
     /** Creates a new instance of OggStreamer */
     public OggStreamer(URL url) {
-        this.oggDecoder = new OggDecoder(url);
+	this.url = url;
     }
     
+    /**
+     * Open the Ogg/Vorbis stream and initialize OpenAL based
+     * on the stream properties
+     */
     public boolean open() {
+	oggDecoder = new OggDecoder(url);
+
         if (!oggDecoder.initialize()) {
             System.err.println("Error initializing ogg stream...");
             return false;
         }
         
+        if (oggDecoder.numChannels() == 1)
+	    format = AL.AL_FORMAT_MONO16;
+	else
+	    format = AL.AL_FORMAT_STEREO16;
+        
+	rate = oggDecoder.sampleRate();
+
+	System.err.println("format  = 0x" + Integer.toString(format, 16));
+
 	// TODO: I am not if this is the right way to fix the endian
 	// problems I am having... but this seems to fix it on Linux
 	oggDecoder.setSwap(true);
 
-        switch (oggDecoder.numChannels()) {
-            case 1:	format = AL.AL_FORMAT_MONO16;	break;
-            case 2:	format = AL.AL_FORMAT_STEREO16;	break;
-            default:
-                System.err.println("Incorrect number of channels..");
-                return false;
-        }
-        
-	rate = oggDecoder.sampleRate();
-
         al.alGenBuffers(2, buffers, 0); check();
         al.alGenSources(1, source, 0); check();
-
-	System.err.println("format  = 0x" + Integer.toString(format, 16));
-	// System.err.println("buffers = " + Arrays.toString(buffers));
-	// System.err.println("source  = " + Arrays.toString(source ));
 
 	al.alSourcefv(source[0], AL.AL_POSITION , sourcePos, 0);
 	al.alSourcefv(source[0], AL.AL_VELOCITY , sourceVel, 0);
@@ -124,19 +129,26 @@ public class OggStreamer {
         al.alSourcef(source[0], AL.AL_ROLLOFF_FACTOR,  0.0f    );
         al.alSourcei(source[0], AL.AL_SOURCE_RELATIVE, AL.AL_TRUE);
         
+	// System.err.println("buffers = " + Arrays.toString(buffers));
+	// System.err.println("source  = " + Arrays.toString(source ));
+	//
         return true;
     }
     
+    /**
+     * OpenAL cleanup
+     */
     public void release() {
 	al.alSourceStop(source[0]);
 	empty();
 
 	al.alDeleteSources(1, source, 0); check();
 	al.alDeleteBuffers(2, buffers, 0); check();
-
-	// ov_clear(&oggStream);
     }
 
+    /**
+     * Play the Ogg stream
+     */
     public boolean playback() {
 	if (playing())
 	    return true;
@@ -153,6 +165,9 @@ public class OggStreamer {
         return true;
     }
     
+    /**
+     * Check if the source is playing
+     */
     public boolean playing() {
 	int[] state = new int[1];
     
@@ -161,6 +176,9 @@ public class OggStreamer {
 	return (state[0] == AL.AL_PLAYING);
     }
     
+    /**
+     * Update the stream if necessary
+     */
     public boolean update() {
 	int[] processed = new int[1];
 	boolean active = true;
@@ -183,6 +201,9 @@ public class OggStreamer {
 	return active;
     }
     
+    /**
+     * Reloads a buffer (reads in the next chunk)
+     */
     public boolean stream(int buffer) {
 	byte[] pcm = new byte[BUFFER_SIZE];
 	int    size = 0;
@@ -202,15 +223,39 @@ public class OggStreamer {
 	return true;
     }
 
-    public void empty() {
+    /**
+     * Empties the queue
+     */
+    protected void empty() {
+	int[] queued = new int[1];
+	
+	al.alGetSourcei(source[0], AL.AL_BUFFERS_QUEUED, queued, 0);
+	
+	while (queued[0] > 0)
+	{
+	    int[] buffer = new int[1];
+	
+	    al.alSourceUnqueueBuffers(source[0], 1, buffer, 0);
+	    check();
+
+	    queued[0]--;
+	}
+
+	oggDecoder = null;
     }
 
-    private void check() {
+    /**
+     * Check for OpenAL errors...
+     */
+    protected void check() {
         if (al.alGetError() != AL.AL_NO_ERROR)
             throw new ALException("OpenAL error raised...");
     }
     
-    public boolean play() {
+    /**
+     * The main loop to initialize and play the entire stream
+     */
+    public boolean playstream() {
         if (!open())
             return false;
         
@@ -240,8 +285,8 @@ public class OggStreamer {
 
         try {
 	    if (args.length == 0) {
-		url = OggStreamer.class.getClassLoader().getResource("demos/data/crickets.ogg");
-		(new OggStreamer(url)).play();
+		url = OggStreamer.class.getClassLoader().getResource("demos/data/broken_glass.ogg");
+		(new OggStreamer(url)).playstream();
 	    }
 
             for (int i = 0; i < args.length; i++) {
@@ -250,7 +295,7 @@ public class OggStreamer {
                 url = ((new File(args[i])).exists()) ?
                     new URL("file:" + args[i]) : new URL(args[i]);
                 
-                if ((new OggStreamer(url)).play()) continue;
+                if ((new OggStreamer(url)).playstream()) continue;
                 
                 System.err.println("ERROR!!");
             }

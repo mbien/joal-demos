@@ -251,7 +251,7 @@ public class OggDecoder {
 
 	try {
 	    if (args.length == 0) {
-		url = OggDecoder.class.getClassLoader().getResource("demos/data/crickets.ogg");
+		url = OggDecoder.class.getClassLoader().getResource("demos/data/broken_glass.ogg");
 		(new OggDecoder(url)).play();
 	    }
 
