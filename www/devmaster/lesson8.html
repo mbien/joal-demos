@@ -135,7 +135,13 @@ tutorial. <var>OggStreamer</var> which is the main class doing most of the worki
 
 </p>
 
-<pre class="code">    // The size of a chunk from the stream that we want to read for each update.<br>    private static int BUFFER_SIZE = 4096*8;<br></pre>
+<pre class="code">
+    // The size of a chunk from the stream that we want to read for each update.
+    private static int BUFFER_SIZE = 4096*8;
+
+    // The number of buffers used in the audio pipeline
+    private static int NUM_BUFFERS = 2;
+</pre>
 
 
 
@@ -170,8 +176,13 @@ just yet. I believe my comments should give you an idea of what they're for.</p>
 
 
 
-<pre class="code">    // Buffers hold sound data. There are two of them (front/back)<br>    private int[] buffers = new int[2];<br>    <br>    // Sources are points emitting sound.<br>    private int[] source = new int[1];<br>    <br>    private int format;	// OpenAL data format<br>    private int rate;	// sample rate<br></pre>
-
+<pre class="code">
+    // Buffers hold sound data. There are two of them by default (front/back)
+    private int[] buffers = new int[NUM_BUFFERS];
+    
+    // Sources are points emitting sound.
+    private int[] source = new int[1];
+</pre>
 
 
 <p>First thing that I want to point out is that we have 2 buffers dedicated to 
@@ -197,7 +208,7 @@ enumerator based on how many channels are in the Ogg and then make a not of the 
 
 
 
-<pre class="code">    public boolean open() {<br>	...<br><br>        al.alGenBuffers(2, buffers, 0); check();<br>        al.alGenSources(1, source, 0); check();<br><br>	al.alSourcefv(source[0], AL.AL_POSITION , sourcePos, 0);<br>	al.alSourcefv(source[0], AL.AL_VELOCITY , sourceVel, 0);<br>	al.alSourcefv(source[0], AL.AL_DIRECTION, sourceDir, 0);<br>        <br>        al.alSourcef(source[0], AL.AL_ROLLOFF_FACTOR,  0.0f    );<br>        al.alSourcei(source[0], AL.AL_SOURCE_RELATIVE, AL.AL_TRUE);<br><br>	...<br>    }<br></pre>
+<pre class="code">    public boolean open() {<br>	...<br><br>        al.alGenBuffers(NUM_BUFFERS, buffers, 0); check();<br>        al.alGenSources(1, source, 0); check();<br><br>	al.alSourcefv(source[0], AL.AL_POSITION , sourcePos, 0);<br>	al.alSourcefv(source[0], AL.AL_VELOCITY , sourceVel, 0);<br>	al.alSourcefv(source[0], AL.AL_DIRECTION, sourceDir, 0);<br>        <br>        al.alSourcef(source[0], AL.AL_ROLLOFF_FACTOR,  0.0f    );<br>        al.alSourcei(source[0], AL.AL_SOURCE_RELATIVE, AL.AL_TRUE);<br><br>	...<br>    }<br></pre>
 
 
 
@@ -211,7 +222,16 @@ will still hear it. The same idea applies to source relativity.</p>
 
 
 
-<pre class="code">    public void release() {<br>	al.alSourceStop(source[0]);<br>	empty();<br><br>	al.alDeleteSources(1, source, 0); check();<br>	al.alDeleteBuffers(2, buffers, 0); check();<br>    }<br></pre>
+<pre class="code">
+    public void release() {
+	al.alSourceStop(source[0]);
+	empty();
+
+	for (int i = 0; i < NUM_BUFFERS; i++) {
+	    al.alDeleteSources(i, source, 0); check();
+	}
+    }
+</pre>
 
 
 <p>We can clean up after ourselves using this. We stop the source, empty out any 
@@ -219,7 +239,22 @@ buffers that are still in the queue, and destroy our objects.
 
 </p>
 
-<pre class="code">    public boolean playback() {<br>	if (playing())<br>	    return true;<br>        <br>	if (!stream(buffers[0]))<br>	    return false;<br>        <br>	if(!stream(buffers[1]))<br>	    return false;<br>    <br>	al.alSourceQueueBuffers(source[0], 2, buffers, 0);<br>	al.alSourcePlay(source[0]);<br>    <br>        return true;<br>    }<br></pre>
+<pre class="code">
+    public boolean playback() {
+	if (playing())
+	    return true;
+        
+	for (int i = 0; i < NUM_BUFFERS; i++) {
+	    if (!stream(buffers[i]))
+		return false;
+	}
+    
+	al.alSourceQueueBuffers(source[0], NUM_BUFFERS, buffers, 0);
+	al.alSourcePlay(source[0]);
+    
+        return true;
+    }
+</pre>
 
 
 
